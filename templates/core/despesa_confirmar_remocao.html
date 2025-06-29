@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Despesa</h4>
+                        <p class="text-muted">Tem certeza que deseja remover esta despesa?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Despesa</h6>
+                        <ul class="mb-0">
+                            <li><strong>Descrição:</strong> {{ despesa.descricao }}</li>
+                            <li><strong>Valor:</strong> R$ {{ despesa.valor|floatformat:2 }}</li>
+                            <li><strong>Data:</strong> {{ despesa.data|date:"d/m/Y" }}</li>
+                            <li><strong>Categoria:</strong> {{ despesa.categoria.nome }}</li>
+                            <li><strong>Conta:</strong> {{ despesa.conta.nome }}</li>
+                            {% if despesa.forma_pagamento %}
+                            <li><strong>Forma de Pagamento:</strong> {{ despesa.get_forma_pagamento_display }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A despesa será marcada como inativa e não aparecerá mais nas listagens.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:despesa_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

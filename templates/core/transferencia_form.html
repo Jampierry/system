@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{{ title }}</h1>
+            <p class="text-muted">Registre uma transferência entre contas</p>
+        </div>
+        <a href="{% url 'core:transferencia_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt text-warning me-2"></i>Dados da Transferência
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="formTransferencia">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.descricao.id_for_label }}" class="form-label">
+                                        Descrição <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.descricao }}
+                                    {% if form.descricao.errors %}
+                                    <div class="text-danger small">{{ form.descricao.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.valor.id_for_label }}" class="form-label">
+                                        Valor <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        {{ form.valor }}
+                                    </div>
+                                    {% if form.valor.errors %}
+                                    <div class="text-danger small">{{ form.valor.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.data.id_for_label }}" class="form-label">
+                                        Data <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.data }}
+                                    {% if form.data.errors %}
+                                    <div class="text-danger small">{{ form.data.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.conta_origem.id_for_label }}" class="form-label">
+                                        Conta de Origem <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.conta_origem }}
+                                    {% if form.conta_origem.errors %}
+                                    <div class="text-danger small">{{ form.conta_origem.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.conta_destino.id_for_label }}" class="form-label">
+                                        Conta de Destino <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.conta_destino }}
+                                    {% if form.conta_destino.errors %}
+                                    <div class="text-danger small">{{ form.conta_destino.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.taxa.id_for_label }}" class="form-label">Taxa de Transferência</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        {{ form.taxa }}
+                                    </div>
+                                    {% if form.taxa.errors %}
+                                    <div class="text-danger small">{{ form.taxa.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                    <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                            <div class="text-danger small">{{ form.observacoes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'core:transferencia_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>Salvar Transferência
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resumo da Transferência -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>Resumo da Transferência
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-danger">
+                                    <i class="fas fa-arrow-down me-2"></i>Conta de Origem
+                                </h6>
+                                <div id="resumoOrigem">
+                                    <p class="text-muted mb-0">Selecione uma conta de origem</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-success">
+                                    <i class="fas fa-arrow-up me-2"></i>Conta de Destino
+                                </h6>
+                                <div id="resumoDestino">
+                                    <p class="text-muted mb-0">Selecione uma conta de destino</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h5 class="text-primary mb-0" id="resumoValor">R$ 0,00</h5>
+                            <small class="text-muted">Valor da Transferência</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="text-warning mb-0" id="resumoTaxa">R$ 0,00</h5>
+                            <small class="text-muted">Taxa</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="text-info mb-0" id="resumoTotal">R$ 0,00</h5>
+                            <small class="text-muted">Total (Valor + Taxa)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar data atual como padrão se for nova transferência
+    const dataField = document.getElementById('{{ form.data.id_for_label }}');
+    if (dataField && !dataField.value) {
+        dataField.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Validação do formulário
+    const form = document.getElementById('formTransferencia');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        // Validar se conta origem e destino são diferentes
+        const contaOrigem = document.getElementById('{{ form.conta_origem.id_for_label }}');
+        const contaDestino = document.getElementById('{{ form.conta_destino.id_for_label }}');
+        
+        if (contaOrigem && contaDestino && contaOrigem.value === contaDestino.value && contaOrigem.value !== '') {
+            alert('A conta de origem e destino não podem ser iguais.');
+            e.preventDefault();
+            return;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+
+    // Formatação de valores monetários
+    const valorFields = document.querySelectorAll('input[type="number"]');
+    valorFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    });
+
+    // Atualizar resumo em tempo real
+    function updateResumo() {
+        const valor = parseFloat(document.getElementById('{{ form.valor.id_for_label }}').value) || 0;
+        const taxa = parseFloat(document.getElementById('{{ form.taxa.id_for_label }}').value) || 0;
+        const total = valor + taxa;
+
+        document.getElementById('resumoValor').textContent = `R$ ${valor.toFixed(2)}`;
+        document.getElementById('resumoTaxa').textContent = `R$ ${taxa.toFixed(2)}`;
+        document.getElementById('resumoTotal').textContent = `R$ ${total.toFixed(2)}`;
+    }
+
+    // Event listeners para resumo
+    const valorField = document.getElementById('{{ form.valor.id_for_label }}');
+    const taxaField = document.getElementById('{{ form.taxa.id_for_label }}');
+    
+    if (valorField) valorField.addEventListener('input', updateResumo);
+    if (taxaField) taxaField.addEventListener('input', updateResumo);
+
+    // Inicializar resumo
+    updateResumo();
+});
+</script>
+{% endblock %} 

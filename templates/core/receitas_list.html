@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Receitas - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Receitas</h1>
+            <p class="text-muted">Gerencie suas receitas</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalReceita">
+            <i class="fas fa-plus me-2"></i>Nova Receita
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-2">{{ form_filtro.data_inicial.label_tag }}{{ form_filtro.data_inicial }}</div>
+                <div class="col-md-2">{{ form_filtro.data_final.label_tag }}{{ form_filtro.data_final }}</div>
+                <div class="col-md-2">{{ form_filtro.categoria.label_tag }}{{ form_filtro.categoria }}</div>
+                <div class="col-md-2">{{ form_filtro.conta.label_tag }}{{ form_filtro.conta }}</div>
+                <div class="col-md-1">{{ form_filtro.valor_min.label_tag }}{{ form_filtro.valor_min }}</div>
+                <div class="col-md-1">{{ form_filtro.valor_max.label_tag }}{{ form_filtro.valor_max }}</div>
+                <div class="col-md-1">{{ form_filtro.recorrente.label_tag }}{{ form_filtro.recorrente }}</div>
+                <div class="col-md-2">{{ form_filtro.busca_texto.label_tag }}{{ form_filtro.busca_texto }}</div>
+                <div class="col-md-12 d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'core:receita_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Receitas -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Conta</th>
+                            <th>Valor</th>
+                            <th>Recorrente</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for receita in receitas %}
+                        <tr>
+                            <td>{{ receita.data|date:"d/m/Y" }}</td>
+                            <td>
+                                <strong>{{ receita.descricao }}</strong>
+                                {% if receita.observacoes %}
+                                <br><small class="text-muted">{{ receita.observacoes|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ receita.categoria.cor }}; color: white;">
+                                    <i class="{{ receita.categoria.icone }} me-1"></i>{{ receita.categoria.nome }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    <i class="{{ receita.conta.icone }} me-1"></i>{{ receita.conta.nome }}
+                                </span>
+                            </td>
+                            <td class="text-success fw-bold">R$ {{ receita.valor|floatformat:2 }}</td>
+                            <td>
+                                {% if receita.recorrente %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-redo me-1"></i>{{ receita.get_frequencia_display }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">Única</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'core:receita_update' receita.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'core:receita_delete' receita.id %}" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta receita?');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>Nenhuma receita encontrada.</p>
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalReceita">
+                                    <i class="fas fa-plus me-2"></i>Adicionar primeira receita
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova/Editar Receita -->
+<div class="modal fade" id="modalReceita" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalReceitaTitle">Nova Receita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formReceita" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="id_descricao" class="form-label">Descrição *</label>
+                                <input type="text" name="descricao" id="id_descricao" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_valor" class="form-label">Valor *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" name="valor" id="id_valor" class="form-control" step="0.01" min="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_data" class="form-label">Data *</label>
+                                <input type="date" name="data" id="id_data" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_categoria" class="form-label">Categoria *</label>
+                                <select name="categoria" id="id_categoria" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_conta" class="form-label">Conta *</label>
+                                <select name="conta" id="id_conta" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for conta in contas %}
+                                    <option value="{{ conta.id }}">{{ conta.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="recorrente" id="id_recorrente" class="form-check-input">
+                                    <label for="id_recorrente" class="form-check-label">Receita recorrente</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_frequencia" class="form-label">Frequência</label>
+                                <select name="frequencia" id="id_frequencia" class="form-select" disabled>
+                                    <option value="">Selecione...</option>
+                                    <option value="semanal">Semanal</option>
+                                    <option value="quinzenal">Quinzenal</option>
+                                    <option value="mensal">Mensal</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_observacoes" class="form-label">Observações</label>
+                        <textarea name="observacoes" id="id_observacoes" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Remoção -->
+<div class="modal fade" id="modalConfirmacao" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Remoção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja remover a receita "<strong id="receitaDescricao"></strong>"?</p>
+                <p class="text-danger"><small>Esta ação não pode ser desfeita.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formRemocao" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Remover
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configurar data atual como padrão
+document.getElementById('id_data').value = new Date().toISOString().split('T')[0];
+
+// Habilitar/desabilitar frequência baseado no checkbox de recorrente
+document.getElementById('id_recorrente').addEventListener('change', function() {
+    const frequenciaSelect = document.getElementById('id_frequencia');
+    frequenciaSelect.disabled = !this.checked;
+    if (!this.checked) {
+        frequenciaSelect.value = '';
+    }
+});
+
+// Função para editar receita
+function editarReceita(id) {
+    // Implementar lógica de edição
+    console.log('Editar receita:', id);
+}
+
+// Função para confirmar remoção
+function confirmarRemocao(id, descricao) {
+    document.getElementById('receitaDescricao').textContent = descricao;
+    document.getElementById('formRemocao').action = `/receitas/${id}/remover/`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalConfirmacao'));
+    modal.show();
+}
+</script>
+{% endblock %} 

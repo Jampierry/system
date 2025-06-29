@@ -1,0 +1,626 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load br_filters %}
+
+{% block title %}Dashboard - SGFP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+<style>
+.chart-container {
+    position: relative;
+    height: 220px;
+    margin-bottom: 16px;
+}
+.metric-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+    min-height: 120px;
+    padding: 12px 16px;
+}
+.metric-card h3 {
+    font-size: 1.5rem;
+}
+.card.shadow {
+    margin-bottom: 16px;
+}
+.metric-card.receitas {
+    border-left-color: #28a745;
+}
+.metric-card.despesas {
+    border-left-color: #dc3545;
+}
+.metric-card.saldo {
+    border-left-color: #007bff;
+}
+.metric-card.metas {
+    border-left-color: #ffc107;
+}
+.trend-indicator {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+.trend-up {
+    background-color: #d4edda;
+    color: #155724;
+}
+.trend-down {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.trend-stable {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <p class="text-muted">Bem-vindo, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="atualizarDashboard()">
+                <i class="fas fa-sync-alt me-2"></i>Atualizar
+            </button>
+            <a href="{% url 'core:relatorio_financeiro' %}" class="btn btn-outline-info">
+                <i class="fas fa-chart-bar me-2"></i>Relatórios
+            </a>
+        </div>
+    </div>
+
+    <!-- Métricas Principais -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card shadow metric-card receitas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Receitas (Mês)</h6>
+                            <h3 class="text-success mb-0">{{ receitas_mes|br_currency }}</h3>
+                            <div class="mt-2">
+                                {% if receitas_trend > 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                                </span>
+                                {% elif receitas_trend < 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-up fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ receitas_count }} transações este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card despesas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Despesas (Mês)</h6>
+                            <h3 class="text-danger mb-0">{{ despesas_mes|br_currency }}</h3>
+                            <div class="mt-2">
+                                {% if despesas_trend > 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                                </span>
+                                {% elif despesas_trend < 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ despesas_count }} transações este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card saldo">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Saldo (Mês)</h6>
+                            <h3 class="{% if saldo_mes >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
+                                {{ saldo_mes|br_currency }}
+                            </h3>
+                            <div class="mt-2">
+                                {% if saldo_trend > 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                                </span>
+                                {% elif saldo_trend < 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-balance-scale fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Receitas - Despesas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card metas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Metas Ativas</h6>
+                            <h3 class="text-warning mb-0">{{ metas_ativas_count }}</h3>
+                            <div class="mt-2">
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-bullseye me-1"></i>{{ metas_concluidas_count }} concluídas
+                                </span>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-bullseye fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ metas_total_count }} metas no total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartões de Crédito -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-credit-card me-2"></i>Cartões de Crédito
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if cartoes_credito %}
+                            {% for cartao in cartoes_credito %}
+                            <div class="col-md-4 col-lg-3">
+                                <div class="card border-primary h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="{{ cartao.icone }} fa-2x me-2 text-primary"></i>
+                                            <h5 class="mb-0">{{ cartao.nome }}</h5>
+                                        </div>
+                                        <div class="mb-1"><strong>Limite:</strong> {{ cartao.saldo_inicial|br_currency }}</div>
+                                        <div class="mb-1"><strong>Fatura Atual:</strong> {{ cartao.saldo_atual|br_currency }}</div>
+                                        <div class="mb-1"><strong>Vencimento:</strong> <span class="text-muted">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center text-muted">Nenhum cartão de crédito cadastrado.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="row mb-4">
+        <!-- Gráfico de Evolução dos Últimos 6 Meses -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Evolução Financeira (Últimos 6 Meses)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartEvolucao"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Despesas por Categoria -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Despesas por Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análises Avançadas -->
+    <div class="row mb-4">
+        <!-- Previsão de Gastos -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>Previsão de Gastos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-primary mb-0">{{ previsao_proximo_mes|br_currency }}</h4>
+                            <small class="text-muted">Próximo Mês</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info mb-0">{{ previsao_trimestre|br_currency }}</h4>
+                            <small class="text-muted">Próximo Trimestre</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning mb-0">{{ previsao_ano|br_currency }}</h4>
+                            <small class="text-muted">Próximo Ano</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Baseado em:</strong> Média dos últimos 3 meses + tendência sazonal
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise de Tendências -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trending-up me-2"></i>Análise de Tendências
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center mb-3">
+                                <h6 class="text-success">Receitas</h6>
+                                {% if receitas_tendencia == 'crescendo' %}
+                                <i class="fas fa-arrow-up fa-2x text-success"></i>
+                                <p class="mb-0">Tendência de crescimento</p>
+                                {% elif receitas_tendencia == 'decrescendo' %}
+                                <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                                <p class="mb-0">Tendência de queda</p>
+                                {% else %}
+                                <i class="fas fa-minus fa-2x text-secondary"></i>
+                                <p class="mb-0">Tendência estável</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center mb-3">
+                                <h6 class="text-danger">Despesas</h6>
+                                {% if despesas_tendencia == 'crescendo' %}
+                                <i class="fas fa-arrow-up fa-2x text-danger"></i>
+                                <p class="mb-0">Tendência de crescimento</p>
+                                {% elif despesas_tendencia == 'decrescendo' %}
+                                <i class="fas fa-arrow-down fa-2x text-success"></i>
+                                <p class="mb-0">Tendência de queda</p>
+                                {% else %}
+                                <i class="fas fa-minus fa-2x text-secondary"></i>
+                                <p class="mb-0">Tendência estável</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas e Notificações -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>Alertas e Notificações
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if alertas %}
+                    <div class="list-group list-group-flush">
+                        {% for alerta in alertas %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <i class="fas fa-exclamation-triangle text-{{ alerta.tipo }} me-2"></i>
+                                    {{ alerta.titulo }}
+                                </h6>
+                                <small class="text-muted">{{ alerta.data|timesince }} atrás</small>
+                            </div>
+                            <p class="mb-1">{{ alerta.mensagem }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <p>Nenhum alerta ativo. Suas finanças estão em ordem!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Metas em Destaque -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye me-2"></i>Metas em Destaque
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if metas_destaque %}
+                    <div class="list-group list-group-flush">
+                        {% for meta in metas_destaque %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ meta.titulo }}</h6>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ meta.percentual }}%"></div>
+                            </div>
+                            <small class="text-muted">
+                                {{ meta.valor_atual|br_currency }} / {{ meta.valor_meta|br_currency }}
+                                ({{ meta.percentual|floatformat:1 }}%)
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-bullseye fa-3x mb-3"></i>
+                        <p>Nenhuma meta ativa</p>
+                        <a href="{% url 'core:meta_create' %}" class="btn btn-sm btn-primary">
+                            Criar Meta
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transações Recentes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Transações Recentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Conta</th>
+                                    <th>Valor</th>
+                                    <th>Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transacao in transacoes_recentes %}
+                                <tr>
+                                    <td>{{ transacao.data|date:"d/m/Y" }}</td>
+                                    <td>{{ transacao.descricao|truncatechars:30 }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ transacao.categoria.cor|default:'#007bff' }};">
+                                            {{ transacao.categoria.nome }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transacao.conta.nome }}</td>
+                                    <td class="{% if transacao.tipo == 'receita' %}text-success{% else %}text-danger{% endif %}">
+                                        {{ transacao.valor|br_currency }}
+                                    </td>
+                                    <td>
+                                        {% if transacao.tipo == 'receita' %}
+                                        <i class="fas fa-arrow-up text-success"></i>
+                                        {% else %}
+                                        <i class="fas fa-arrow-down text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        Nenhuma transação encontrada
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'core:receita_list' %}" class="btn btn-outline-success me-2">
+                            <i class="fas fa-plus me-2"></i>Nova Receita
+                        </a>
+                        <a href="{% url 'core:despesa_list' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-plus me-2"></i>Nova Despesa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Dados dos gráficos (serão preenchidos pelo backend)
+const dadosGraficos = {
+    evolucao: {
+        labels: {{ labels_evolucao|safe }},
+        receitas: {{ dados_receitas|safe }},
+        despesas: {{ dados_despesas|safe }},
+        saldo: {{ dados_saldo|safe }}
+    },
+    categorias: {
+        labels: {{ labels_categorias|safe }},
+        dados: {{ dados_categorias|safe }},
+        cores: {{ cores_categorias|safe }}
+    }
+};
+
+// Gráfico de Evolução
+const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+new Chart(ctxEvolucao, {
+    type: 'line',
+    data: {
+        labels: dadosGraficos.evolucao.labels,
+        datasets: [{
+            label: 'Receitas',
+            data: dadosGraficos.evolucao.receitas,
+            borderColor: 'rgba(40, 167, 69, 1)',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }, {
+            label: 'Despesas',
+            data: dadosGraficos.evolucao.despesas,
+            borderColor: 'rgba(220, 53, 69, 1)',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }, {
+            label: 'Saldo',
+            data: dadosGraficos.evolucao.saldo,
+            borderColor: 'rgba(0, 123, 255, 1)',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                    }
+                }
+            },
+            legend: {
+                position: 'top'
+            }
+        }
+    }
+});
+
+// Gráfico de Categorias
+const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+new Chart(ctxCategorias, {
+    type: 'doughnut',
+    data: {
+        labels: dadosGraficos.categorias.labels,
+        datasets: [{
+            data: dadosGraficos.categorias.dados,
+            backgroundColor: dadosGraficos.categorias.cores,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    usePointStyle: true
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentual = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': R$ ' + context.parsed.toLocaleString('pt-BR') + ' (' + percentual + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Função para atualizar dashboard
+function atualizarDashboard() {
+    location.reload();
+}
+
+// Atualização automática a cada 5 minutos
+setInterval(function() {
+    // Verificar se há novas transações
+    fetch('{% url "core:dashboard" %}')
+        .then(response => response.text())
+        .then(html => {
+            // Aqui você pode implementar uma atualização mais sutil
+            console.log('Dashboard verificado para atualizações');
+        });
+}, 300000); // 5 minutos
+</script>
+{% endblock %} 

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Backups Disponíveis - SGFP{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Backups Disponíveis</h5>
+                </div>
+                <div class="card-body">
+                    {% if arquivos %}
+                    <ul class="list-group">
+                        {% for arquivo in arquivos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-file-alt me-2"></i>{{ arquivo }}</span>
+                            <div class="btn-group">
+                                <a href="{% url 'core:baixar_backup' arquivo %}" class="btn btn-outline-success btn-sm me-2">
+                                    <i class="fas fa-download me-1"></i>Baixar
+                                </a>
+                                <a href="{% url 'core:importar_backup_arquivo' arquivo %}" class="btn btn-outline-primary btn-sm me-2" onclick="return confirm('Tem certeza que deseja importar este backup? Isso pode sobrescrever dados existentes.')">
+                                    <i class="fas fa-upload me-1"></i>Importar
+                                </a>
+                                <form method="post" action="{% url 'core:excluir_backup' arquivo %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este backup?')">
+                                        <i class="fas fa-trash me-1"></i>Excluir
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>Nenhum backup encontrado na pasta <code>backup/</code>.
+                    </div>
+                    {% endif %}
+                    <div class="mt-3 text-end">
+                        <a href="{% url 'core:configuracoes' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

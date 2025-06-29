@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Transferência</h4>
+                        <p class="text-muted">Tem certeza que deseja remover esta transferência?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Transferência</h6>
+                        <ul class="mb-0">
+                            <li><strong>Descrição:</strong> {{ transferencia.descricao }}</li>
+                            <li><strong>Valor:</strong> R$ {{ transferencia.valor|floatformat:2 }}</li>
+                            <li><strong>Data:</strong> {{ transferencia.data|date:"d/m/Y" }}</li>
+                            <li><strong>Status:</strong> 
+                                {% if transferencia.status == 'PENDENTE' %}
+                                <span class="badge bg-warning">Pendente</span>
+                                {% elif transferencia.status == 'CONCLUIDA' %}
+                                <span class="badge bg-success">Concluída</span>
+                                {% elif transferencia.status == 'CANCELADA' %}
+                                <span class="badge bg-danger">Cancelada</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-exchange-alt me-2"></i>Contas Envolvidas</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="border rounded p-2">
+                                    <small class="text-danger">Conta de Origem</small>
+                                    <div><strong>{{ transferencia.conta_origem.nome }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border rounded p-2">
+                                    <small class="text-success">Conta de Destino</small>
+                                    <div><strong>{{ transferencia.conta_destino.nome }}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if transferencia.taxa %}
+                        <div class="mt-2">
+                            <small class="text-muted">Taxa de Transferência: R$ {{ transferencia.taxa|floatformat:2 }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A transferência será marcada como cancelada e não aparecerá mais nas listagens.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:transferencia_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

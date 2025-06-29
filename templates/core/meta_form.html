@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{{ title }}</h1>
+            <p class="text-muted">Defina suas metas financeiras</p>
+        </div>
+        <a href="{% url 'core:meta_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye text-success me-2"></i>Dados da Meta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="formMeta">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.titulo.id_for_label }}" class="form-label">
+                                        Título da Meta <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.titulo }}
+                                    {% if form.titulo.errors %}
+                                    <div class="text-danger small">{{ form.titulo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                                        Tipo <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.tipo }}
+                                    {% if form.tipo.errors %}
+                                    <div class="text-danger small">{{ form.tipo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.valor_meta.id_for_label }}" class="form-label">
+                                        Valor da Meta <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        {{ form.valor_meta }}
+                                    </div>
+                                    {% if form.valor_meta.errors %}
+                                    <div class="text-danger small">{{ form.valor_meta.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.valor_atual.id_for_label }}" class="form-label">Valor Atual</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        {{ form.valor_atual }}
+                                    </div>
+                                    {% if form.valor_atual.errors %}
+                                    <div class="text-danger small">{{ form.valor_atual.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.data_inicio.id_for_label }}" class="form-label">
+                                        Data de Início <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.data_inicio }}
+                                    {% if form.data_inicio.errors %}
+                                    <div class="text-danger small">{{ form.data_inicio.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.data_fim.id_for_label }}" class="form-label">
+                                        Data de Conclusão <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.data_fim }}
+                                    {% if form.data_fim.errors %}
+                                    <div class="text-danger small">{{ form.data_fim.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.categoria.id_for_label }}" class="form-label">Categoria</label>
+                                    {{ form.categoria }}
+                                    {% if form.categoria.errors %}
+                                    <div class="text-danger small">{{ form.categoria.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.conta.id_for_label }}" class="form-label">Conta</label>
+                                    {{ form.conta }}
+                                    {% if form.conta.errors %}
+                                    <div class="text-danger small">{{ form.conta.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.ativa }}
+                                        <label class="form-check-label" for="{{ form.ativa.id_for_label }}">
+                                            Meta Ativa
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.notificacoes }}
+                                        <label class="form-check-label" for="{{ form.notificacoes.id_for_label }}">
+                                            Ativar Notificações
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                            <div class="text-danger small">{{ form.descricao.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'core:meta_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Salvar Meta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Progresso da Meta -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Progresso da Meta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <h4 class="text-primary mb-0" id="progressoPercentual">0%</h4>
+                                <small class="text-muted">Progresso</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <h4 class="text-success mb-0" id="progressoRestante">R$ 0,00</h4>
+                                <small class="text-muted">Restante</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-success" id="progressoBarra" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h6 class="text-info mb-0" id="progressoAtual">R$ 0,00</h6>
+                            <small class="text-muted">Valor Atual</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-primary mb-0" id="progressoMeta">R$ 0,00</h6>
+                            <small class="text-muted">Valor da Meta</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-warning mb-0" id="progressoTempo">0 dias</h6>
+                            <small class="text-muted">Tempo Restante</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar data atual como padrão se for nova meta
+    const dataInicioField = document.getElementById('{{ form.data_inicio.id_for_label }}');
+    if (dataInicioField && !dataInicioField.value) {
+        dataInicioField.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Validação do formulário
+    const form = document.getElementById('formMeta');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        // Validar datas
+        const dataInicio = document.getElementById('{{ form.data_inicio.id_for_label }}');
+        const dataFim = document.getElementById('{{ form.data_fim.id_for_label }}');
+        
+        if (dataInicio && dataFim && dataInicio.value && dataFim.value) {
+            if (new Date(dataInicio.value) > new Date(dataFim.value)) {
+                alert('A data de início não pode ser posterior à data de conclusão.');
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+
+    // Formatação de valores monetários
+    const valorFields = document.querySelectorAll('input[type="number"]');
+    valorFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    });
+
+    // Atualizar progresso em tempo real
+    function updateProgresso() {
+        const valorMeta = parseFloat(document.getElementById('{{ form.valor_meta.id_for_label }}').value) || 0;
+        const valorAtual = parseFloat(document.getElementById('{{ form.valor_atual.id_for_label }}').value) || 0;
+        const dataInicio = document.getElementById('{{ form.data_inicio.id_for_label }}').value;
+        const dataFim = document.getElementById('{{ form.data_fim.id_for_label }}').value;
+
+        // Calcular percentual
+        const percentual = valorMeta > 0 ? Math.min((valorAtual / valorMeta) * 100, 100) : 0;
+        const restante = Math.max(valorMeta - valorAtual, 0);
+
+        // Atualizar elementos
+        document.getElementById('progressoPercentual').textContent = `${percentual.toFixed(1)}%`;
+        document.getElementById('progressoRestante').textContent = `R$ ${restante.toFixed(2)}`;
+        document.getElementById('progressoAtual').textContent = `R$ ${valorAtual.toFixed(2)}`;
+        document.getElementById('progressoMeta').textContent = `R$ ${valorMeta.toFixed(2)}`;
+        
+        // Atualizar barra de progresso
+        const progressoBarra = document.getElementById('progressoBarra');
+        progressoBarra.style.width = `${percentual}%`;
+        progressoBarra.textContent = `${percentual.toFixed(1)}%`;
+
+        // Calcular tempo restante
+        if (dataInicio && dataFim) {
+            const hoje = new Date();
+            const fim = new Date(dataFim);
+            const diasRestantes = Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24));
+            
+            if (diasRestantes > 0) {
+                document.getElementById('progressoTempo').textContent = `${diasRestantes} dias`;
+            } else if (diasRestantes === 0) {
+                document.getElementById('progressoTempo').textContent = 'Hoje';
+            } else {
+                document.getElementById('progressoTempo').textContent = 'Expirada';
+            }
+        }
+    }
+
+    // Event listeners para progresso
+    const valorMetaField = document.getElementById('{{ form.valor_meta.id_for_label }}');
+    const valorAtualField = document.getElementById('{{ form.valor_atual.id_for_label }}');
+    const dataInicioField = document.getElementById('{{ form.data_inicio.id_for_label }}');
+    const dataFimField = document.getElementById('{{ form.data_fim.id_for_label }}');
+    
+    if (valorMetaField) valorMetaField.addEventListener('input', updateProgresso);
+    if (valorAtualField) valorAtualField.addEventListener('input', updateProgresso);
+    if (dataInicioField) dataInicioField.addEventListener('change', updateProgresso);
+    if (dataFimField) dataFimField.addEventListener('change', updateProgresso);
+
+    // Inicializar progresso
+    updateProgresso();
+});
+</script>
+{% endblock %} 

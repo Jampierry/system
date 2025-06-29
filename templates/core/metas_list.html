@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load br_filters %}
+{% block title %}Metas - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Metas</h1>
+            <p class="text-muted">Gerencie suas metas financeiras</p>
+        </div>
+        <a href="{% url 'core:meta_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nova Meta
+        </a>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Título</th>
+                            <th>Valor Meta</th>
+                            <th>Valor Atual</th>
+                            <th>Data Início</th>
+                            <th>Data Fim</th>
+                            <th>Tipo</th>
+                            <th>Categoria</th>
+                            <th>Conta</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for meta in metas %}
+                        <tr>
+                            <td>{{ meta.titulo }}</td>
+                            <td>{{ meta.valor_meta|br_currency }}</td>
+                            <td>{{ meta.valor_atual|br_currency }}</td>
+                            <td>{{ meta.data_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ meta.data_fim|date:"d/m/Y" }}</td>
+                            <td>{{ meta.get_tipo_display }}</td>
+                            <td>{% if meta.categoria %}{{ meta.categoria.nome }}{% else %}-{% endif %}</td>
+                            <td>{% if meta.conta %}{{ meta.conta.nome }}{% else %}-{% endif %}</td>
+                            <td><span class="badge" style="background-color: {{ meta.categoria.cor }};">&nbsp;&nbsp;</span></td>
+                            <td>
+                                <a href="{% url 'core:meta_update' meta.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'core:meta_delete' meta.id %}" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta meta?');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>Nenhuma meta cadastrada.</p>
+                                <a href="{% url 'core:meta_create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Nova Meta
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

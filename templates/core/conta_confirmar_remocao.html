@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Conta</h4>
+                        <p class="text-muted">Tem certeza que deseja remover esta conta?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Conta</h6>
+                        <ul class="mb-0">
+                            <li><strong>Nome:</strong> {{ conta.nome }}</li>
+                            <li><strong>Tipo:</strong> {{ conta.get_tipo_display }}</li>
+                            {% if conta.banco %}
+                            <li><strong>Banco:</strong> {{ conta.banco }}</li>
+                            {% endif %}
+                            {% if conta.agencia %}
+                            <li><strong>Agência:</strong> {{ conta.agencia }}</li>
+                            {% endif %}
+                            {% if conta.conta %}
+                            <li><strong>Conta:</strong> {{ conta.conta }}</li>
+                            {% endif %}
+                            <li><strong>Saldo Atual:</strong> R$ {{ conta.saldo_atual|floatformat:2 }}</li>
+                        </ul>
+                    </div>
+
+                    {% if conta.receitas.exists or conta.despesas.exists %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>Transações Encontradas</h6>
+                        <p class="mb-0">
+                            Esta conta possui {{ conta.receitas.count }} receita(s) e {{ conta.despesas.count }} despesa(s) associadas. 
+                            A conta será marcada como inativa, mas as transações serão preservadas.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A conta será marcada como inativa e não aparecerá mais nas listagens.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:conta_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

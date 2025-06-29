@@ -1,0 +1,160 @@
+{
+  "categorias": [
+    {
+      "id": "087b8bb0-2bee-4bd8-9222-2918d619867c",
+      "nome": "Alimentação",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#90eb38",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.228578+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.228578+00:00"
+    },
+    {
+      "id": "22191804-21a5-44c0-9788-19fac3b4589e",
+      "nome": "Educação",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#c1000a",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.509809+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.509809+00:00"
+    },
+    {
+      "id": "abd89e1b-e5eb-46e8-8db1-ef425fd919f5",
+      "nome": "Freelance",
+      "descricao": "",
+      "tipo": "receita",
+      "cor": "#1a63e7",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.583962+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.583962+00:00"
+    },
+    {
+      "id": "2cfa94c2-d3bc-442a-b571-51cd03ddbdcc",
+      "nome": "Investimentos",
+      "descricao": "",
+      "tipo": "receita",
+      "cor": "#11b8fa",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.669358+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.669358+00:00"
+    },
+    {
+      "id": "8b77f850-ea35-46f1-bff5-267eb976acde",
+      "nome": "Lazer",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#e7a155",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.742348+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.742348+00:00"
+    },
+    {
+      "id": "ffa1a89f-443c-4e0e-a45a-a0687ccfa08d",
+      "nome": "Moradia",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#bcf500",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.816577+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.816577+00:00"
+    },
+    {
+      "id": "c585fed4-ce19-4086-b6ae-7c1f66e07cd8",
+      "nome": "Salário",
+      "descricao": "",
+      "tipo": "receita",
+      "cor": "#8cb49e",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.890093+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.890093+00:00"
+    },
+    {
+      "id": "9236a558-e3e6-4867-9649-f9e9eb035802",
+      "nome": "Saúde",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#cfd645",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:26.964135+00:00",
+      "data_atualizacao": "2025-06-29 01:09:26.965138+00:00"
+    },
+    {
+      "id": "f88de0eb-9ea1-4ec6-9a01-6c37b319b0ba",
+      "nome": "Transporte",
+      "descricao": "",
+      "tipo": "despesa",
+      "cor": "#0b78d4",
+      "icone": "fas fa-tag",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:27.039318+00:00",
+      "data_atualizacao": "2025-06-29 01:09:27.039318+00:00"
+    }
+  ],
+  "contas": [
+    {
+      "id": "9f723294-7185-41e7-bc3a-8355188eeb31",
+      "nome": "Conta Fictícia 1",
+      "tipo": "investimento",
+      "saldo_inicial": "1852.57",
+      "saldo_atual": "15750.64",
+      "descricao": "",
+      "cor": "#4d65c3",
+      "icone": "fas fa-wallet",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:27.124825+00:00",
+      "data_atualizacao": "2025-06-29 01:09:27.124825+00:00"
+    },
+    {
+      "id": "e4d0970b-379d-4a6a-a6db-66f6244b0871",
+      "nome": "Conta Fictícia 2",
+      "tipo": "poupanca",
+      "saldo_inicial": "4523.48",
+      "saldo_atual": "39976.73",
+      "descricao": "",
+      "cor": "#d1a7b0",
+      "icone": "fas fa-wallet",
+      "usuario_id": 1,
+      "ativo": true,
+      "data_criacao": "2025-06-29 01:09:27.209262+00:00",
+      "data_atualizacao": "2025-06-29 01:09:27.209262+00:00"
+    }
+  ],
+  "receitas": [],
+  "despesas": [],
+  "metas": [],
+  "configuracao": [
+    {
+      "id": 1,
+      "usuario_id": 1,
+      "moeda_padrao": "BRL",
+      "formato_data": "DD/MM/YYYY",
+      "tema_escuro": true,
+      "notificacoes_email": true,
+      "backup_automatico": true,
+      "data_criacao": "2025-06-28 22:34:29.762428+00:00",
+      "data_atualizacao": "2025-06-28 22:50:13.204649+00:00"
+    }
+  ],
+  "transferencias": [],
+  "notificacoes": []
+}

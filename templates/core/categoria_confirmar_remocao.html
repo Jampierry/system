@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Categoria</h4>
+                        <p class="text-muted">Tem certeza que deseja remover esta categoria?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Categoria</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="{{ categoria.icone|default:'fas fa-tag' }} me-2" style="color: {{ categoria.cor|default:'#007bff' }};"></i>
+                            <strong>{{ categoria.nome }}</strong>
+                        </div>
+                        <ul class="mb-0">
+                            <li><strong>Tipo:</strong> {{ categoria.get_tipo_display }}</li>
+                            {% if categoria.descricao %}
+                            <li><strong>Descrição:</strong> {{ categoria.descricao }}</li>
+                            {% endif %}
+                            {% if categoria.categoria_pai %}
+                            <li><strong>Categoria Pai:</strong> {{ categoria.categoria_pai.nome }}</li>
+                            {% endif %}
+                            <li><strong>Status:</strong> 
+                                {% if categoria.ativa %}
+                                <span class="badge bg-success">Ativa</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inativa</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+
+                    {% if categoria.receitas.exists or categoria.despesas.exists %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>Transações Encontradas</h6>
+                        <p class="mb-0">
+                            Esta categoria possui {{ categoria.receitas.count }} receita(s) e {{ categoria.despesas.count }} despesa(s) associadas. 
+                            A categoria será marcada como inativa, mas as transações serão preservadas.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if categoria.subcategorias.exists %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-sitemap me-2"></i>Subcategorias Encontradas</h6>
+                        <p class="mb-0">
+                            Esta categoria possui {{ categoria.subcategorias.count }} subcategoria(s). 
+                            As subcategorias também serão marcadas como inativas.
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            {% for subcategoria in categoria.subcategorias.all %}
+                            <li>{{ subcategoria.nome }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A categoria será marcada como inativa e não aparecerá mais nas listagens.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:categoria_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Despesas - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="fas fa-minus-circle me-2"></i>
+            Despesas
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#despesaModal">
+                <i class="fas fa-plus me-2"></i>
+                Nova Despesa
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-2">{{ form_filtro.data_inicial.label_tag }}{{ form_filtro.data_inicial }}</div>
+                <div class="col-md-2">{{ form_filtro.data_final.label_tag }}{{ form_filtro.data_final }}</div>
+                <div class="col-md-2">{{ form_filtro.categoria.label_tag }}{{ form_filtro.categoria }}</div>
+                <div class="col-md-2">{{ form_filtro.conta.label_tag }}{{ form_filtro.conta }}</div>
+                <div class="col-md-1">{{ form_filtro.valor_min.label_tag }}{{ form_filtro.valor_min }}</div>
+                <div class="col-md-1">{{ form_filtro.valor_max.label_tag }}{{ form_filtro.valor_max }}</div>
+                <div class="col-md-1">{{ form_filtro.recorrente.label_tag }}{{ form_filtro.recorrente }}</div>
+                <div class="col-md-2">{{ form_filtro.busca_texto.label_tag }}{{ form_filtro.busca_texto }}</div>
+                <div class="col-md-12 d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'core:despesa_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Despesas -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Lista de Despesas
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if despesas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Data</th>
+                                <th>Categoria</th>
+                                <th>Conta</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despesa in despesas %}
+                            <tr>
+                                <td>{{ despesa.descricao }}</td>
+                                <td class="text-danger fw-bold">R$ {{ despesa.valor|floatformat:2 }}</td>
+                                <td>{{ despesa.data|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ despesa.categoria.cor }};">
+                                        <i class="{{ despesa.categoria.icone }} me-1"></i>
+                                        {{ despesa.categoria.nome }}
+                                    </span>
+                                </td>
+                                <td>{{ despesa.conta.nome }}</td>
+                                <td>
+                                    <a href="{% url 'core:despesa_edit' despesa.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'core:despesa_delete' despesa.id %}" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta despesa?');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Nenhuma despesa registrada.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#despesaModal">
+                        <i class="fas fa-plus me-2"></i>
+                        Registrar Primeira Despesa
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova Despesa -->
+<div class="modal fade" id="despesaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-minus-circle me-2"></i>
+                    Nova Despesa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.descricao.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i>{{ form.descricao.label }}
+                            </label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                                <div class="text-danger small">{{ form.descricao.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.valor.id_for_label }}" class="form-label">
+                                <i class="fas fa-dollar-sign me-2"></i>{{ form.valor.label }}
+                            </label>
+                            {{ form.valor }}
+                            {% if form.valor.errors %}
+                                <div class="text-danger small">{{ form.valor.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.data.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar me-2"></i>{{ form.data.label }}
+                            </label>
+                            {{ form.data }}
+                            {% if form.data.errors %}
+                                <div class="text-danger small">{{ form.data.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                                <i class="fas fa-tags me-2"></i>{{ form.categoria.label }}
+                            </label>
+                            {{ form.categoria }}
+                            {% if form.categoria.errors %}
+                                <div class="text-danger small">{{ form.categoria.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.conta.id_for_label }}" class="form-label">
+                                <i class="fas fa-wallet me-2"></i>{{ form.conta.label }}
+                            </label>
+                            {{ form.conta }}
+                            {% if form.conta.errors %}
+                                <div class="text-danger small">{{ form.conta.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                {{ form.recorrente }}
+                                <label class="form-check-label" for="{{ form.recorrente.id_for_label }}">
+                                    <i class="fas fa-redo me-2"></i>{{ form.recorrente.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if form.frequencia %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.frequencia.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-2"></i>{{ form.frequencia.label }}
+                            </label>
+                            {{ form.frequencia }}
+                            {% if form.frequencia.errors %}
+                                <div class="text-danger small">{{ form.frequencia.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                            <i class="fas fa-comment me-2"></i>{{ form.observacoes.label }}
+                        </label>
+                        {{ form.observacoes }}
+                        {% if form.observacoes.errors %}
+                            <div class="text-danger small">{{ form.observacoes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>
+                        Salvar Despesa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

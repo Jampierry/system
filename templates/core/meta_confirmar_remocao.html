@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Meta</h4>
+                        <p class="text-muted">Tem certeza que deseja remover esta meta?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Meta</h6>
+                        <ul class="mb-0">
+                            <li><strong>Título:</strong> {{ meta.titulo }}</li>
+                            <li><strong>Tipo:</strong> {{ meta.get_tipo_display }}</li>
+                            <li><strong>Valor da Meta:</strong> R$ {{ meta.valor_meta|floatformat:2 }}</li>
+                            <li><strong>Valor Atual:</strong> R$ {{ meta.valor_atual|floatformat:2 }}</li>
+                            <li><strong>Período:</strong> {{ meta.data_inicio|date:"d/m/Y" }} a {{ meta.data_fim|date:"d/m/Y" }}</li>
+                            <li><strong>Status:</strong> 
+                                {% if meta.ativa %}
+                                <span class="badge bg-success">Ativa</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inativa</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Progresso da Meta -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-chart-line me-2"></i>Progresso da Meta</h6>
+                        {% with percentual=meta.valor_atual|div:meta.valor_meta|mul:100 %}
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ percentual|floatformat:1 }}%">
+                                {{ percentual|floatformat:1 }}%
+                            </div>
+                        </div>
+                        {% endwith %}
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted">Atual</small>
+                                <div><strong>R$ {{ meta.valor_atual|floatformat:2 }}</strong></div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Meta</small>
+                                <div><strong>R$ {{ meta.valor_meta|floatformat:2 }}</strong></div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Restante</small>
+                                <div><strong>R$ {{ meta.valor_meta|sub:meta.valor_atual|floatformat:2 }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A meta será marcada como inativa e não aparecerá mais nas listagens.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:meta_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

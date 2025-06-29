@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{{ title }}</h1>
+            <p class="text-muted">Organize suas transações por categorias</p>
+        </div>
+        <a href="{% url 'core:categoria_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags text-info me-2"></i>Dados da Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="formCategoria">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.nome.id_for_label }}" class="form-label">
+                                        Nome da Categoria <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.nome }}
+                                    {% if form.nome.errors %}
+                                    <div class="text-danger small">{{ form.nome.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.tipo.id_for_label }}" class="form-label">
+                                        Tipo <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.tipo }}
+                                    {% if form.tipo.errors %}
+                                    <div class="text-danger small">{{ form.tipo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.cor.id_for_label }}" class="form-label">Cor</label>
+                                    <div class="input-group">
+                                        {{ form.cor }}
+                                        <span class="input-group-text">
+                                            <i class="fas fa-palette"></i>
+                                        </span>
+                                    </div>
+                                    {% if form.cor.errors %}
+                                    <div class="text-danger small">{{ form.cor.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.icone.id_for_label }}" class="form-label">Ícone</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-icons"></i>
+                                        </span>
+                                        {{ form.icone }}
+                                    </div>
+                                    {% if form.icone.errors %}
+                                    <div class="text-danger small">{{ form.icone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.categoria_pai.id_for_label }}" class="form-label">Categoria Pai</label>
+                                    {{ form.categoria_pai }}
+                                    {% if form.categoria_pai.errors %}
+                                    <div class="text-danger small">{{ form.categoria_pai.errors.0 }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Deixe em branco para criar uma categoria principal
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.ativa }}
+                                        <label class="form-check-label" for="{{ form.ativa.id_for_label }}">
+                                            Categoria Ativa
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.descricao.id_for_label }}" class="form-label">Descrição</label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}
+                            <div class="text-danger small">{{ form.descricao.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'core:categoria_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-save me-2"></i>Salvar Categoria
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preview da Categoria -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>Preview da Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="me-3">
+                                    <i class="fas fa-tag fa-2x" id="previewIcon" style="color: #007bff;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0" id="previewNome">Nome da Categoria</h6>
+                                    <small class="text-muted" id="previewTipo">Tipo</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded">
+                                <h6>Informações</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Cor:</strong> <span id="previewCor">#007bff</span></li>
+                                    <li><strong>Ícone:</strong> <span id="previewIconName">fas fa-tag</span></li>
+                                    <li><strong>Status:</strong> <span id="previewStatus">Ativa</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nomeField = document.getElementById('{{ form.nome.id_for_label }}');
+    const tipoField = document.getElementById('{{ form.tipo.id_for_label }}');
+    const corField = document.getElementById('{{ form.cor.id_for_label }}');
+    const iconeField = document.getElementById('{{ form.icone.id_for_label }}');
+    const ativaField = document.getElementById('{{ form.ativa.id_for_label }}');
+
+    // Preview em tempo real
+    function updatePreview() {
+        // Nome
+        if (nomeField) {
+            document.getElementById('previewNome').textContent = nomeField.value || 'Nome da Categoria';
+        }
+
+        // Tipo
+        if (tipoField) {
+            const tipoText = tipoField.options[tipoField.selectedIndex]?.text || 'Tipo';
+            document.getElementById('previewTipo').textContent = tipoText;
+        }
+
+        // Cor
+        if (corField) {
+            const cor = corField.value || '#007bff';
+            document.getElementById('previewCor').textContent = cor;
+            document.getElementById('previewIcon').style.color = cor;
+        }
+
+        // Ícone
+        if (iconeField) {
+            const icone = iconeField.value || 'fas fa-tag';
+            document.getElementById('previewIconName').textContent = icone;
+            document.getElementById('previewIcon').className = icone + ' fa-2x';
+        }
+
+        // Status
+        if (ativaField) {
+            const status = ativaField.checked ? 'Ativa' : 'Inativa';
+            document.getElementById('previewStatus').textContent = status;
+        }
+    }
+
+    // Event listeners para preview
+    [nomeField, tipoField, corField, iconeField, ativaField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', updatePreview);
+            field.addEventListener('change', updatePreview);
+        }
+    });
+
+    // Validação do formulário
+    const form = document.getElementById('formCategoria');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+
+    // Inicializar preview
+    updatePreview();
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Transferências - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Transferências</h1>
+            <p class="text-muted">Gerencie suas transferências entre contas</p>
+        </div>
+        <a href="{% url 'core:transferencia_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nova Transferência
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="conta_origem" class="form-label">Conta Origem</label>
+                    <select name="conta_origem" id="conta_origem" class="form-select">
+                        <option value="">Todas</option>
+                        {% for conta in contas %}
+                        <option value="{{ conta.id }}" {% if request.GET.conta_origem == conta.id|stringformat:"s" %}selected{% endif %}>{{ conta.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="conta_destino" class="form-label">Conta Destino</label>
+                    <select name="conta_destino" id="conta_destino" class="form-select">
+                        <option value="">Todas</option>
+                        {% for conta in contas %}
+                        <option value="{{ conta.id }}" {% if request.GET.conta_destino == conta.id|stringformat:"s" %}selected{% endif %}>{{ conta.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="data_inicio" class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ request.GET.data_inicio }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="data_fim" class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ request.GET.data_fim }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'core:transferencia_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Conta Origem</th>
+                            <th>Conta Destino</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transferencia in transferencias %}
+                        <tr>
+                            <td>{{ transferencia.data|date:"d/m/Y" }}</td>
+                            <td>{{ transferencia.descricao }}</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    <i class="{{ transferencia.conta_origem.icone }} me-1"></i>{{ transferencia.conta_origem.nome }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">
+                                    <i class="{{ transferencia.conta_destino.icone }} me-1"></i>{{ transferencia.conta_destino.nome }}
+                                </span>
+                            </td>
+                            <td class="fw-bold">R$ {{ transferencia.valor|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'core:transferencia_update' transferencia.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'core:transferencia_delete' transferencia.id %}" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta transferência?');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <p>Nenhuma transferência encontrada.</p>
+                                <a href="{% url 'core:transferencia_create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Nova Transferência
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

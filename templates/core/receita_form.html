@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{{ title }}</h1>
+            <p class="text-muted">Registre uma nova receita</p>
+        </div>
+        <a href="{% url 'core:receita_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle text-success me-2"></i>Dados da Receita
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="formReceita">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.descricao.id_for_label }}" class="form-label">
+                                        Descrição <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.descricao }}
+                                    {% if form.descricao.errors %}
+                                    <div class="text-danger small">{{ form.descricao.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.valor.id_for_label }}" class="form-label">
+                                        Valor <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        {{ form.valor }}
+                                    </div>
+                                    {% if form.valor.errors %}
+                                    <div class="text-danger small">{{ form.valor.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.data.id_for_label }}" class="form-label">
+                                        Data <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.data }}
+                                    {% if form.data.errors %}
+                                    <div class="text-danger small">{{ form.data.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                                        Categoria <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.categoria }}
+                                    {% if form.categoria.errors %}
+                                    <div class="text-danger small">{{ form.categoria.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.conta.id_for_label }}" class="form-label">
+                                        Conta <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.conta }}
+                                    {% if form.conta.errors %}
+                                    <div class="text-danger small">{{ form.conta.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.recorrente }}
+                                        <label class="form-check-label" for="{{ form.recorrente.id_for_label }}">
+                                            Receita Recorrente
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.frequencia.id_for_label }}" class="form-label">Frequência</label>
+                                    {{ form.frequencia }}
+                                    {% if form.frequencia.errors %}
+                                    <div class="text-danger small">{{ form.frequencia.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.observacoes.id_for_label }}" class="form-label">Observações</label>
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                            <div class="text-danger small">{{ form.observacoes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'core:receita_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Salvar Receita
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar data atual como padrão se for nova receita
+    const dataField = document.getElementById('{{ form.data.id_for_label }}');
+    if (dataField && !dataField.value) {
+        dataField.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Habilitar/desabilitar frequência baseado no checkbox de recorrente
+    const recorrenteCheckbox = document.getElementById('{{ form.recorrente.id_for_label }}');
+    const frequenciaSelect = document.getElementById('{{ form.frequencia.id_for_label }}');
+    
+    if (recorrenteCheckbox && frequenciaSelect) {
+        // Estado inicial
+        frequenciaSelect.disabled = !recorrenteCheckbox.checked;
+        
+        // Event listener
+        recorrenteCheckbox.addEventListener('change', function() {
+            frequenciaSelect.disabled = !this.checked;
+            if (!this.checked) {
+                frequenciaSelect.value = '';
+            }
+        });
+    }
+
+    // Validação do formulário
+    const form = document.getElementById('formReceita');
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos obrigatórios.');
+        }
+    });
+
+    // Formatação de valor monetário
+    const valorField = document.getElementById('{{ form.valor.id_for_label }}');
+    if (valorField) {
+        valorField.addEventListener('blur', function() {
+            const value = parseFloat(this.value);
+            if (!isNaN(value)) {
+                this.value = value.toFixed(2);
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

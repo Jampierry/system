@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Notificações - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-bell me-2"></i>Notificações
+            </h1>
+            <p class="text-muted">Gerencie suas notificações e alertas</p>
+        </div>
+        <div class="btn-group" role="group">
+            <form method="post" action="{% url 'core:notificacao_marcar_todas_lidas' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="fas fa-check-double me-2"></i>Marcar Todas como Lidas
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos os tipos</option>
+                        {% for value, label in tipos %}
+                        <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="lida" class="form-label">Status</label>
+                    <select name="lida" id="lida" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="false" {% if request.GET.lida == 'false' %}selected{% endif %}>Não lidas</option>
+                        <option value="true" {% if request.GET.lida == 'true' %}selected{% endif %}>Lidas</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter me-2"></i>Filtrar
+                    </button>
+                    <a href="{% url 'core:notificacoes_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Limpar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Notificações -->
+    <div class="card shadow">
+        <div class="card-body">
+            {% if notificacoes %}
+            <div class="list-group list-group-flush">
+                {% for notificacao in notificacoes %}
+                <div class="list-group-item {% if not notificacao.lida %}border-start border-3 border-primary{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="{{ notificacao.icone }} me-3 text-{{ notificacao.tipo }}"></i>
+                                <h6 class="mb-0 {% if not notificacao.lida %}fw-bold{% endif %}">
+                                    {{ notificacao.titulo }}
+                                </h6>
+                                {% if not notificacao.lida %}
+                                <span class="badge bg-primary ms-2">Nova</span>
+                                {% endif %}
+                            </div>
+                            <p class="mb-2 text-muted">{{ notificacao.mensagem }}</p>
+                            <div class="d-flex align-items-center">
+                                <small class="text-muted me-3">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ notificacao.data_criacao|timesince }} atrás
+                                </small>
+                                {% if notificacao.link %}
+                                <a href="{{ notificacao.link }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ver
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="btn-group-vertical">
+                            {% if not notificacao.lida %}
+                            <button class="btn btn-sm btn-outline-success marcar-lida" 
+                                    data-notificacao-id="{{ notificacao.id }}">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'core:notificacao_detail' notificacao.id %}" 
+                               class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'core:notificacao_delete' notificacao.id %}" 
+                               class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                <h5>Nenhuma notificação encontrada</h5>
+                <p>Você não tem notificações que correspondam aos filtros selecionados.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Marcar notificação como lida via AJAX
+document.querySelectorAll('.marcar-lida').forEach(button => {
+    button.addEventListener('click', function() {
+        const notificacaoId = this.dataset.notificacaoId;
+        const listItem = this.closest('.list-group-item');
+        
+        fetch(`/notificacoes/${notificacaoId}/marcar-lida/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remover badge "Nova"
+                const badge = listItem.querySelector('.badge');
+                if (badge) badge.remove();
+                
+                // Remover botão "Marcar como lida"
+                this.remove();
+                
+                // Remover borda azul
+                listItem.classList.remove('border-start', 'border-3', 'border-primary');
+                
+                // Remover negrito do título
+                const titulo = listItem.querySelector('h6');
+                titulo.classList.remove('fw-bold');
+                
+                // Atualizar contador de notificações no header
+                atualizarContadorNotificacoes();
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao marcar notificação como lida:', error);
+        });
+    });
+});
+
+// Função para atualizar contador de notificações
+function atualizarContadorNotificacoes() {
+    fetch('/api/notificacoes/count/')
+        .then(response => response.json())
+        .then(data => {
+            const contador = document.getElementById('notificacoes-count');
+            if (contador) {
+                contador.textContent = data.count;
+                if (data.count === 0) {
+                    contador.style.display = 'none';
+                } else {
+                    contador.style.display = 'inline';
+                }
+            }
+        });
+}
+
+// Atualizar contador ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    atualizarContadorNotificacoes();
+});
+</script>
+{% endblock %} 

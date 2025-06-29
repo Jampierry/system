@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios Financeiros - SGFP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+<style>
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 20px;
+}
+.metric-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+}
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+.metric-card.receitas {
+    border-left-color: #28a745;
+}
+.metric-card.despesas {
+    border-left-color: #dc3545;
+}
+.metric-card.saldo {
+    border-left-color: #007bff;
+}
+.metric-card.metas {
+    border-left-color: #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Relatórios Financeiros</h1>
+            <p class="text-muted">Análise detalhada das suas finanças</p>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="exportarRelatorio()">
+                <i class="fas fa-download me-2"></i>Exportar
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="imprimirRelatorio()">
+                <i class="fas fa-print me-2"></i>Imprimir
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filtros
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" id="filtroForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="periodo" class="form-label">Período</label>
+                        <select class="form-select" name="periodo" id="periodo">
+                            <option value="mes_atual" {% if periodo == 'mes_atual' %}selected{% endif %}>Mês Atual</option>
+                            <option value="mes_anterior" {% if periodo == 'mes_anterior' %}selected{% endif %}>Mês Anterior</option>
+                            <option value="ultimos_3_meses" {% if periodo == 'ultimos_3_meses' %}selected{% endif %}>Últimos 3 Meses</option>
+                            <option value="ultimos_6_meses" {% if periodo == 'ultimos_6_meses' %}selected{% endif %}>Últimos 6 Meses</option>
+                            <option value="ano_atual" {% if periodo == 'ano_atual' %}selected{% endif %}>Ano Atual</option>
+                            <option value="personalizado" {% if periodo == 'personalizado' %}selected{% endif %}>Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="data_inicio" class="form-label">Data Início</label>
+                        <input type="date" class="form-control" name="data_inicio" id="data_inicio" 
+                               value="{{ data_inicio|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="data_fim" class="form-label">Data Fim</label>
+                        <input type="date" class="form-control" name="data_fim" id="data_fim" 
+                               value="{{ data_fim|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" name="categoria" id="categoria">
+                            <option value="">Todas as Categorias</option>
+                            {% for cat in categorias %}
+                            <option value="{{ cat.id }}" {% if categoria == cat.id %}selected{% endif %}>{{ cat.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <label for="conta" class="form-label">Conta</label>
+                        <select class="form-select" name="conta" id="conta">
+                            <option value="">Todas as Contas</option>
+                            {% for c in contas %}
+                            <option value="{{ c.id }}" {% if conta == c.id %}selected{% endif %}>{{ c.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select class="form-select" name="tipo" id="tipo">
+                            <option value="">Todos os Tipos</option>
+                            <option value="receita" {% if tipo == 'receita' %}selected{% endif %}>Receitas</option>
+                            <option value="despesa" {% if tipo == 'despesa' %}selected{% endif %}>Despesas</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-2"></i>Filtrar
+                        </button>
+                        <a href="{% url 'core:relatorio_financeiro' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Limpar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Métricas Principais -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow metric-card receitas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Receitas</h6>
+                            <h3 class="text-success mb-0">R$ {{ total_receitas|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-up fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ receitas_count }} transações</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card despesas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Despesas</h6>
+                            <h3 class="text-danger mb-0">R$ {{ total_despesas|floatformat:2 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ despesas_count }} transações</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card saldo">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Saldo</h6>
+                            <h3 class="{% if saldo >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
+                                R$ {{ saldo|floatformat:2 }}
+                            </h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-balance-scale fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Receitas - Despesas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card metas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Metas</h6>
+                            <h3 class="text-warning mb-0">{{ metas_count }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-bullseye fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ metas_ativas_count }} ativas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <!-- Gráfico de Receitas vs Despesas -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Receitas vs Despesas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartReceitasDespesas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Categorias -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Despesas por Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Evolução Temporal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Evolução Temporal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="chartEvolucao"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabelas Detalhadas -->
+    <div class="row">
+        <!-- Top Receitas -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Top 10 Receitas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Valor</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for receita in top_receitas %}
+                                <tr>
+                                    <td>{{ receita.descricao|truncatechars:20 }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ receita.categoria.cor|default:'#007bff' }};">
+                                            {{ receita.categoria.nome }}
+                                        </span>
+                                    </td>
+                                    <td class="text-success">R$ {{ receita.valor|floatformat:2 }}</td>
+                                    <td>{{ receita.data|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Nenhuma receita encontrada</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Despesas -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Top 10 Despesas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Valor</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for despesa in top_despesas %}
+                                <tr>
+                                    <td>{{ despesa.descricao|truncatechars:20 }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ despesa.categoria.cor|default:'#dc3545' }};">
+                                            {{ despesa.categoria.nome }}
+                                        </span>
+                                    </td>
+                                    <td class="text-danger">R$ {{ despesa.valor|floatformat:2 }}</td>
+                                    <td>{{ despesa.data|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Nenhuma despesa encontrada</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Dados dos gráficos (serão preenchidos pelo backend)
+const dadosGraficos = {
+    receitasDespesas: {
+        labels: {{ labels_receitas_despesas|safe }},
+        receitas: {{ dados_receitas|safe }},
+        despesas: {{ dados_despesas|safe }}
+    },
+    categorias: {
+        labels: {{ labels_categorias|safe }},
+        dados: {{ dados_categorias|safe }},
+        cores: {{ cores_categorias|safe }}
+    },
+    evolucao: {
+        labels: {{ labels_evolucao|safe }},
+        receitas: {{ dados_evolucao_receitas|safe }},
+        despesas: {{ dados_evolucao_despesas|safe }},
+        saldo: {{ dados_evolucao_saldo|safe }}
+    }
+};
+
+// Gráfico de Receitas vs Despesas
+const ctxReceitasDespesas = document.getElementById('chartReceitasDespesas').getContext('2d');
+new Chart(ctxReceitasDespesas, {
+    type: 'bar',
+    data: {
+        labels: dadosGraficos.receitasDespesas.labels,
+        datasets: [{
+            label: 'Receitas',
+            data: dadosGraficos.receitasDespesas.receitas,
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+        }, {
+            label: 'Despesas',
+            data: dadosGraficos.receitasDespesas.despesas,
+            backgroundColor: 'rgba(220, 53, 69, 0.8)',
+            borderColor: 'rgba(220, 53, 69, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Categorias
+const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+new Chart(ctxCategorias, {
+    type: 'doughnut',
+    data: {
+        labels: dadosGraficos.categorias.labels,
+        datasets: [{
+            data: dadosGraficos.categorias.dados,
+            backgroundColor: dadosGraficos.categorias.cores,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentual = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': R$ ' + context.parsed.toLocaleString('pt-BR') + ' (' + percentual + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Evolução Temporal
+const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+new Chart(ctxEvolucao, {
+    type: 'line',
+    data: {
+        labels: dadosGraficos.evolucao.labels,
+        datasets: [{
+            label: 'Receitas',
+            data: dadosGraficos.evolucao.receitas,
+            borderColor: 'rgba(40, 167, 69, 1)',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderWidth: 2,
+            fill: true
+        }, {
+            label: 'Despesas',
+            data: dadosGraficos.evolucao.despesas,
+            borderColor: 'rgba(220, 53, 69, 1)',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            borderWidth: 2,
+            fill: true
+        }, {
+            label: 'Saldo',
+            data: dadosGraficos.evolucao.saldo,
+            borderColor: 'rgba(0, 123, 255, 1)',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderWidth: 2,
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Funções auxiliares
+function exportarRelatorio() {
+    alert('Funcionalidade de exportação em desenvolvimento');
+}
+
+function imprimirRelatorio() {
+    window.print();
+}
+
+// Controle de filtros
+document.getElementById('periodo').addEventListener('change', function() {
+    const dataInicio = document.getElementById('data_inicio');
+    const dataFim = document.getElementById('data_fim');
+    
+    if (this.value !== 'personalizado') {
+        dataInicio.disabled = true;
+        dataFim.disabled = true;
+    } else {
+        dataInicio.disabled = false;
+        dataFim.disabled = false;
+    }
+});
+</script>
+{% endblock %} 

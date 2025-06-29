@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Notificação - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash fa-3x text-danger mb-3"></i>
+                        <h4>Excluir Notificação</h4>
+                        <p class="text-muted">Esta ação não pode ser desfeita.</p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Notificação:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Título:</strong> {{ notificacao.titulo }}</li>
+                            <li><strong>Tipo:</strong> {{ notificacao.get_tipo_display }}</li>
+                            <li><strong>Data:</strong> {{ notificacao.data_criacao|date:"d/m/Y H:i" }}</li>
+                            <li><strong>Status:</strong> 
+                                {% if notificacao.lida %}Lida{% else %}Não lida{% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Mensagem:</strong>
+                        <div class="p-3 bg-light rounded mt-2">
+                            {{ notificacao.mensagem|linebreaks }}
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Exclusão
+                            </button>
+                            <a href="{% url 'core:notificacao_detail' notificacao.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

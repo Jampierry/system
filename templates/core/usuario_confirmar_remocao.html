@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Remoção - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Remoção
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h4>Remover Usuário</h4>
+                        <p class="text-muted">Tem certeza que deseja remover este usuário?</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes do Usuário</h6>
+                        <ul class="mb-0">
+                            <li><strong>Nome:</strong> {{ usuario.get_full_name }}</li>
+                            <li><strong>Usuário:</strong> {{ usuario.username }}</li>
+                            <li><strong>E-mail:</strong> {{ usuario.email }}</li>
+                            <li><strong>Status:</strong> 
+                                {% if usuario.is_active %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                            </li>
+                            <li><strong>Data de Cadastro:</strong> {{ usuario.date_joined|date:"d/m/Y" }}</li>
+                            {% if usuario.last_login %}
+                            <li><strong>Último Login:</strong> {{ usuario.last_login|date:"d/m/Y H:i" }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    {% if usuario.receitas.exists or usuario.despesas.exists %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>Dados Financeiros</h6>
+                        <p class="mb-0">
+                            Este usuário possui {{ usuario.receitas.count }} receita(s) e {{ usuario.despesas.count }} despesa(s) associadas. 
+                            O usuário será marcado como inativo, mas os dados financeiros serão preservados.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if usuario.is_superuser %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-crown me-2"></i>Superusuário</h6>
+                        <p class="mb-0">
+                            <strong>Atenção:</strong> Este usuário é um superusuário. Removê-lo pode afetar o funcionamento do sistema.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if usuario == request.user %}
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-user-times me-2"></i>Usuário Atual</h6>
+                        <p class="mb-0">
+                            <strong>ATENÇÃO:</strong> Você está tentando remover seu próprio usuário. 
+                            Isso irá desativar sua conta e você não conseguirá mais acessar o sistema.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. O usuário será marcado como inativo e não conseguirá mais acessar o sistema.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'core:usuario_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Confirmar Remoção
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

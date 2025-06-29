@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Configurações - SGFP{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Configurações</h1>
+            <p class="text-muted">Personalize suas preferências do sistema</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Configurações Gerais -->
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Preferências Gerais
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.moeda_padrao.id_for_label }}" class="form-label">Moeda Padrão</label>
+                                    {{ form.moeda_padrao }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.formato_data.id_for_label }}" class="form-label">Formato de Data</label>
+                                    {{ form.formato_data }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.tema_escuro }}
+                                        <label class="form-check-label" for="{{ form.tema_escuro.id_for_label }}">
+                                            Tema Escuro
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.notificacoes_email }}
+                                        <label class="form-check-label" for="{{ form.notificacoes_email.id_for_label }}">
+                                            Notificações por E-mail
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.backup_automatico }}
+                                        <label class="form-check-label" for="{{ form.backup_automatico.id_for_label }}">
+                                            Backup Automático
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Salvar Configurações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ferramentas do Sistema -->
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Ferramentas do Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Geração de Dados Fictícios -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-database me-2"></i>Dados de Teste
+                        </h6>
+                        <p class="text-muted small">
+                            Gera dados fictícios para testar o sistema. Os dados incluem receitas, despesas, 
+                            transferências, contas e metas de janeiro a junho de 2025.
+                        </p>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" name="gerar_dados_ficticios" class="btn btn-warning btn-sm" 
+                                    onclick="return confirm('Tem certeza? Isso irá gerar dados fictícios para o seu usuário.')">
+                                <i class="fas fa-magic me-2"></i>Gerar Dados Fictícios
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'core:excluir_dados_ficticios' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm ms-2" onclick="return confirm('Tem certeza que deseja excluir TODOS os dados fictícios de 2025? Esta ação não pode ser desfeita.')">
+                                <i class="fas fa-trash me-2"></i>Excluir Dados Fictícios
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <!-- Backup e Restore -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-download me-2"></i>Backup e Restore
+                        </h6>
+                        <p class="text-muted small">
+                            Exporte ou importe seus dados financeiros.
+                        </p>
+                        <div class="btn-group-vertical w-100" role="group">
+                            <a href="{% url 'core:exportar_backup' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-2"></i>Exportar Dados
+                            </a>
+                            <a href="{% url 'core:importar_backup' %}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-upload me-2"></i>Importar Dados
+                            </a>
+                            <a href="{% url 'core:listar_backups' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-folder-open me-2"></i>Ver Backups Salvos
+                            </a>
+                            <a href="{% url 'core:exportar_banco_completo' %}" class="btn btn-outline-danger btn-sm mt-2">
+                                <i class="fas fa-database me-2"></i>Exportar Banco Completo
+                            </a>
+                            <a href="{% url 'core:importar_banco_completo' %}" class="btn btn-outline-danger btn-sm mt-2">
+                                <i class="fas fa-database me-2"></i>Importar Banco Completo
+                            </a>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Limpeza de Dados -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-broom me-2"></i>Limpeza de Dados
+                        </h6>
+                        <p class="text-muted small">
+                            Remova dados antigos ou desnecessários.
+                        </p>
+                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                onclick="alert('Funcionalidade em desenvolvimento')">
+                            <i class="fas fa-trash me-2"></i>Limpar Dados Antigos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações do Sistema -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Informações do Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-0">{{ user.receitas.count }}</h4>
+                                <small class="text-muted">Receitas</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-danger mb-0">{{ user.despesas.count }}</h4>
+                            <small class="text-muted">Despesas</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-info mb-0">{{ user.contas.count }}</h4>
+                                <small class="text-muted">Contas</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning mb-0">{{ user.metas.count }}</h4>
+                            <small class="text-muted">Metas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Aplicar tema escuro se configurado
+document.addEventListener('DOMContentLoaded', function() {
+    const temaEscuro = document.getElementById('{{ form.tema_escuro.id_for_label }}');
+    if (temaEscuro && temaEscuro.checked) {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+    
+    // Atualizar tema quando checkbox mudar
+    temaEscuro.addEventListener('change', function() {
+        if (this.checked) {
+            document.body.setAttribute('data-theme', 'dark');
+        } else {
+            document.body.setAttribute('data-theme', 'light');
+        }
+    });
+});
+</script>
+{% endblock %} 
