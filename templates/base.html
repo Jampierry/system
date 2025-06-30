@@ -1,10 +1,13 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="{% if tema_escuro %}dark-theme{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SGFP - Sistema de Gestão Financeira Pessoal{% endblock %}</title>
+    
+    <!-- CSRF Token -->
+    {% csrf_token %}
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,6 +16,182 @@
     <!-- Custom CSS -->
     <link href="{% static 'core/css/style.css' %}" rel="stylesheet">
     <style>
+        /* Tema Dark Colorido e Moderno */
+        .dark-theme {
+            background-color: #242933 !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme body {
+            background-color: #242933 !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .main-content {
+            background-color: #242933 !important;
+        }
+        .dark-theme .sidebar {
+            background: linear-gradient(180deg, #22304A 0%, #23272F 100%) !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .sidebar .nav-link {
+            color: #F1F3F4 !important;
+            font-weight: 500;
+        }
+        .dark-theme .sidebar .nav-link i {
+            color: inherit;
+            filter: brightness(1.2);
+        }
+        .dark-theme .sidebar .nav-link.active {
+            background: rgba(58,141,255,0.18) !important;
+            color: #3A8DFF !important;
+            border-left: 4px solid #3A8DFF;
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+        .dark-theme .sidebar .nav-link.active i {
+            color: #3A8DFF !important;
+        }
+        .dark-theme .sidebar .nav-link .fa-arrow-up { color: #4ADE80 !important; }
+        .dark-theme .sidebar .nav-link .fa-arrow-down { color: #F87171 !important; }
+        .dark-theme .sidebar .nav-link .fa-exchange-alt { color: #3A8DFF !important; }
+        .dark-theme .sidebar .nav-link .fa-tags { color: #FACC15 !important; }
+        .dark-theme .sidebar .nav-link .fa-wallet { color: #A78BFA !important; }
+        .dark-theme .sidebar .nav-link .fa-bullseye { color: #F472B6 !important; }
+        .dark-theme .sidebar .nav-link .fa-chart-bar { color: #38BDF8 !important; }
+        .dark-theme .sidebar .nav-link .fa-cog { color: #FBBF24 !important; }
+        .dark-theme .sidebar .sidebar-label { color: #F1F3F4 !important; }
+        .dark-theme .sidebar .fw-bold { color: #fff !important; }
+        .dark-theme .sidebar .sidebar-toggle { color: #B0B3B8 !important; }
+        .dark-theme .sidebar .sidebar-toggle:hover { background: #22304A !important; }
+        .dark-theme .navbar, .dark-theme .navbar-light, .dark-theme .bg-light {
+            background-color: #23272F !important;
+            color: #F1F3F4 !important;
+            border-color: #333639 !important;
+        }
+        .dark-theme .navbar .navbar-brand, .dark-theme .navbar .nav-link, .dark-theme .navbar .fa-user-circle, .dark-theme .navbar .fa-bell {
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .navbar .nav-link.dropdown-toggle {
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .navbar .dropdown-menu {
+            background-color: #23272F !important;
+            color: #F1F3F4 !important;
+            border-color: #333639 !important;
+        }
+        .dark-theme .navbar .dropdown-item {
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .navbar .dropdown-item:hover {
+            background-color: #22304A !important;
+        }
+        .dark-theme .notification-badge {
+            background: #FACC15 !important;
+            color: #23272F !important;
+            border: 2px solid #23272F;
+        }
+        .dark-theme .btn-close {
+            filter: invert(1);
+        }
+        .dark-theme .card, .dark-theme .table, .dark-theme .dropdown-menu {
+            background-color: #23272F !important;
+            color: #F1F3F4 !important;
+            border-color: #333639 !important;
+        }
+        .dark-theme .card-header, .dark-theme .table-light {
+            background-color: #22304A !important;
+            color: #F1F3F4 !important;
+            border-color: #333639 !important;
+        }
+        .dark-theme .form-control {
+            background-color: #23272F !important;
+            border-color: #333639 !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .form-control:focus {
+            background-color: #23272F !important;
+            border-color: #3A8DFF !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .text-muted, .dark-theme .small {
+            color: #B0B3B8 !important;
+        }
+        .dark-theme .border-bottom, .dark-theme .border-end {
+            border-color: #333639 !important;
+        }
+        .dark-theme .dropdown-item {
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .dropdown-item:hover {
+            background-color: #22304A !important;
+        }
+        .dark-theme .btn-primary, .dark-theme .btn-outline-primary {
+            background-color: #3A8DFF !important;
+            border-color: #3A8DFF !important;
+            color: #fff !important;
+        }
+        .dark-theme .btn-primary:hover, .dark-theme .btn-outline-primary:hover {
+            background-color: #60AFFF !important;
+            border-color: #60AFFF !important;
+        }
+        .dark-theme .btn-outline-danger {
+            border-color: #F87171 !important;
+            color: #F87171 !important;
+        }
+        .dark-theme .btn-outline-danger:hover {
+            background-color: #F87171 !important;
+            color: #fff !important;
+        }
+        .dark-theme .alert {
+            background-color: #23272F !important;
+            border-color: #333639 !important;
+            color: #F1F3F4 !important;
+        }
+        .dark-theme .badge {
+            background-color: #22304A !important;
+            color: #F1F3F4 !important;
+            border: 1px solid #3A8DFF;
+        }
+        .dark-theme .badge.bg-success {
+            background-color: #4ADE80 !important;
+            color: #23272F !important;
+        }
+        .dark-theme .badge.bg-danger {
+            background-color: #F87171 !important;
+            color: #23272F !important;
+        }
+        .dark-theme .badge.bg-primary, .dark-theme .badge.bg-info {
+            background-color: #3A8DFF !important;
+            color: #23272F !important;
+        }
+        .dark-theme .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #23272F !important;
+        }
+        .dark-theme .table-hover > tbody > tr:hover {
+            background-color: #22304A !important;
+        }
+        /* Seletor de cor no dark */
+        .dark-theme input[type="color"] {
+            border: 2px solid #3A8DFF !important;
+            background: #23272F !important;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            cursor: pointer;
+        }
+        .dark-theme input[type="color"]::-webkit-color-swatch {
+            border-radius: 50%;
+            border: none;
+        }
+        .dark-theme input[type="color"]::-moz-color-swatch {
+            border-radius: 50%;
+            border: none;
+        }
+        .dark-theme input[type="color"]::-ms-color-swatch {
+            border-radius: 50%;
+            border: none;
+        }
+        /* Fim do seletor de cor */
+        /* Estilos gerais e responsividade mantidos */
         body {
             min-height: 100vh;
         }
@@ -25,17 +204,33 @@
             background: #0d6efd;
             color: #fff;
             z-index: 1030;
-            transition: width 0.2s;
+            transition: all 0.3s ease;
+            overflow-y: auto;
         }
         .sidebar.collapsed {
             width: 60px;
         }
-        .sidebar .nav-link, .sidebar .nav-link i {
-            color: #fff;
+        .sidebar .nav-link {
+            color: #fff !important;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin: 0.125rem 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(58,141,255,0.10);
+            transform: translateX(2px);
         }
         .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(58,141,255,0.18) !important;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sidebar .nav-link i {
+            color: #fff;
+            width: 20px;
+            text-align: center;
+            margin-right: 0.5rem;
         }
         .sidebar .sidebar-toggle {
             background: none;
@@ -44,55 +239,190 @@
             width: 100%;
             text-align: right;
             font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+        }
+        .sidebar .sidebar-toggle:hover {
+            background: rgba(58,141,255,0.10);
         }
         .main-content {
             margin-left: 220px;
-            transition: margin-left 0.2s;
+            transition: margin-left 0.3s ease;
         }
         .sidebar.collapsed ~ .main-content {
             margin-left: 60px;
         }
+        .sidebar-label {
+            transition: opacity 0.3s ease;
+        }
+        .sidebar.collapsed .sidebar-label {
+            opacity: 0;
+            display: none;
+        }
         @media (max-width: 991px) {
             .sidebar {
                 left: -220px;
+                transform: translateX(0);
             }
             .sidebar.show {
                 left: 0;
+                transform: translateX(0);
             }
             .main-content {
                 margin-left: 0;
             }
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1025;
+                display: none;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notification-dropdown {
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     {% if user.is_authenticated %}
+    <!-- Overlay para mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
     <!-- Sidebar -->
     <nav id="sidebar" class="sidebar">
         <div class="d-flex justify-content-between align-items-center px-3 py-2">
-            <span class="fw-bold"><i class="fas fa-wallet me-2"></i>SGFP</span>
+            <span class="fw-bold" style="color: {% if tema_escuro %}#F1F3F4{% else %}#23272A{% endif %};"><i class="fas fa-wallet me-2"></i><span class="sidebar-label">SGFP</span></span>
             <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         </div>
         <ul class="nav flex-column px-2">
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:dashboard' %}"><i class="fas fa-tachometer-alt me-2"></i> <span class="sidebar-label">Dashboard</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:receita_list' %}"><i class="fas fa-arrow-up text-success me-2"></i> <span class="sidebar-label">Receitas</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:despesa_list' %}"><i class="fas fa-arrow-down text-danger me-2"></i> <span class="sidebar-label">Despesas</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:transferencia_list' %}"><i class="fas fa-exchange-alt text-info me-2"></i> <span class="sidebar-label">Transferências</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:categoria_list' %}"><i class="fas fa-tags me-2"></i> <span class="sidebar-label">Categorias</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:conta_list' %}"><i class="fas fa-wallet me-2"></i> <span class="sidebar-label">Contas</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:meta_list' %}"><i class="fas fa-bullseye me-2"></i> <span class="sidebar-label">Metas</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:relatorio_financeiro' %}"><i class="fas fa-chart-bar me-2"></i> <span class="sidebar-label">Relatórios</span></a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'core:configuracoes' %}"><i class="fas fa-cog me-2"></i> <span class="sidebar-label">Configurações</span></a></li>
-            <li class="nav-item mt-3"><a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i> <span class="sidebar-label">Sair</span></a></li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> <span class="sidebar-label">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'receita' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:receita_list' %}">
+                    <i class="fas fa-arrow-up"></i> <span class="sidebar-label">Receitas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'despesa' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:despesa_list' %}">
+                    <i class="fas fa-arrow-down"></i> <span class="sidebar-label">Despesas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'transferencia' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:transferencia_list' %}">
+                    <i class="fas fa-exchange-alt"></i> <span class="sidebar-label">Transferências</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'categoria' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:categoria_list' %}">
+                    <i class="fas fa-tags"></i> <span class="sidebar-label">Categorias</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'conta' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:conta_list' %}">
+                    <i class="fas fa-wallet"></i> <span class="sidebar-label">Contas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'meta' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:meta_list' %}">
+                    <i class="fas fa-bullseye"></i> <span class="sidebar-label">Metas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'relatorio' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:relatorio_financeiro' %}">
+                    <i class="fas fa-chart-bar"></i> <span class="sidebar-label">Relatórios</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'configuracoes' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:configuracoes' %}">
+                    <i class="fas fa-cog"></i> <span class="sidebar-label">Configurações</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3">
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt"></i> <span class="sidebar-label">Sair</span>
+                </a>
+            </li>
         </ul>
     </nav>
     {% endif %}
 
     <!-- Conteúdo Principal -->
     <div class="main-content">
-        <!-- Navbar superior pode ser removida ou mantida para atalhos rápidos -->
-        {% if not user.is_authenticated %}
+        <!-- Navbar superior -->
+        {% if user.is_authenticated %}
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link d-lg-none" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-brand mb-0 h1 ms-2" style="color: {% if tema_escuro %}#F1F3F4{% else %}#23272A{% endif %};">SGFP</span>
+                </div>
+                
+                <div class="navbar-nav ms-auto">
+                    <!-- Notificações -->
+                    <div class="nav-item dropdown me-3">
+                        <a class="nav-link dropdown-toggle position-relative" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notification-count" style="display: none;">0</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 300px;">
+                            <h6 class="dropdown-header">Notificações</h6>
+                            <div id="notifications-list">
+                                <div class="dropdown-item text-muted">Carregando...</div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-center" href="{% url 'core:notificacoes_list' %}">
+                                Ver todas as notificações
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Usuário -->
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span style="color: {% if tema_escuro %}#F1F3F4{% else %}#23272A{% endif %};">{{ user.get_full_name|default:user.username }}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="{% url 'core:configuracoes' %}">
+                                <i class="fas fa-cog me-2"></i>Configurações
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        {% else %}
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="{% url 'core:dashboard' %}">
@@ -133,7 +463,8 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p class="mb-0 text-muted">
-                            <i class="fas fa-wallet me-1"></i>SGFP - Sistema de Gestão Financeira Pessoal
+                            <i class="fas fa-wallet me-2"></i>
+                            SGFP - Sistema de Gestão Financeira Pessoal
                         </p>
                     </div>
                     <div class="col-md-6 text-end">
@@ -148,21 +479,95 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="{% static 'core/js/main.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+    
     <script>
-    function toggleSidebar() {
-        var sidebar = document.getElementById('sidebar');
-        var main = document.querySelector('.main-content');
-        sidebar.classList.toggle('collapsed');
-        main.classList.toggle('collapsed');
-        // Esconde/mostra labels
-        var labels = document.querySelectorAll('.sidebar-label');
-        labels.forEach(function(label) {
-            label.style.display = sidebar.classList.contains('collapsed') ? 'none' : 'inline';
+        // Função para alternar sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth <= 991) {
+                // Mobile: mostrar/ocultar sidebar
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            } else {
+                // Desktop: colapsar/expandir sidebar
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+        
+        // Fechar sidebar no mobile ao clicar em um link
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLinks = document.querySelectorAll('.sidebar .nav-link');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 991) {
+                        document.getElementById('sidebar').classList.remove('show');
+                        overlay.classList.remove('show');
+                    }
+                });
+            });
         });
-    }
+        
+        // Fechar sidebar ao redimensionar para desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 991) {
+                document.getElementById('sidebarOverlay').classList.remove('show');
+            }
+        });
+        
+        // Carregar notificações
+        function carregarNotificacoes() {
+            fetch('/core/api/notificacoes/recentes/')
+                .then(response => response.json())
+                .then(data => {
+                    const notificationsList = document.getElementById('notifications-list');
+                    const notificationCount = document.getElementById('notification-count');
+                    
+                    if (data.notificacoes.length === 0) {
+                        notificationsList.innerHTML = '<div class="dropdown-item text-muted">Nenhuma notificação</div>';
+                    } else {
+                        notificationsList.innerHTML = data.notificacoes.map(notif => `
+                            <a class="dropdown-item ${notif.lida ? '' : 'fw-bold'}" href="${notif.link || '#'}">
+                                <div class="d-flex align-items-center">
+                                    <i class="${notif.icone} me-2 text-${notif.tipo === 'alerta' ? 'danger' : notif.tipo === 'sucesso' ? 'success' : 'info'}"></i>
+                                    <div>
+                                        <div class="small">${notif.titulo}</div>
+                                        <div class="text-muted small">${notif.tempo_atras}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        `).join('');
+                    }
+                });
+        }
+        
+        function carregarContadorNotificacoes() {
+            fetch('/core/api/notificacoes/count/')
+                .then(response => response.json())
+                .then(data => {
+                    const notificationCount = document.getElementById('notification-count');
+                    if (data.count > 0) {
+                        notificationCount.textContent = data.count;
+                        notificationCount.style.display = 'flex';
+                    } else {
+                        notificationCount.style.display = 'none';
+                    }
+                });
+        }
+        
+        // Carregar notificações ao carregar a página
+        if (document.getElementById('notifications-list')) {
+            carregarNotificacoes();
+            carregarContadorNotificacoes();
+            // Atualizar a cada 30 segundos
+            setInterval(carregarNotificacoes, 30000);
+            setInterval(carregarContadorNotificacoes, 30000);
+        }
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html> 

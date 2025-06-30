@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load br_filters %}
 
 {% block title %}Relatórios Financeiros - SGFP{% endblock %}
 
@@ -131,7 +132,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="text-muted">Receitas</h6>
-                            <h3 class="text-success mb-0">R$ {{ total_receitas|floatformat:2 }}</h3>
+                            <h3 class="text-success mb-0">{{ total_receitas|br_currency }}</h3>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-arrow-up fa-2x text-success"></i>
@@ -147,7 +148,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="text-muted">Despesas</h6>
-                            <h3 class="text-danger mb-0">R$ {{ total_despesas|floatformat:2 }}</h3>
+                            <h3 class="text-danger mb-0">{{ total_despesas|br_currency }}</h3>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-arrow-down fa-2x text-danger"></i>
@@ -164,7 +165,7 @@
                         <div>
                             <h6 class="text-muted">Saldo</h6>
                             <h3 class="{% if saldo >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
-                                R$ {{ saldo|floatformat:2 }}
+                                {{ saldo|br_currency }}
                             </h3>
                         </div>
                         <div class="align-self-center">
@@ -276,7 +277,7 @@
                                             {{ receita.categoria.nome }}
                                         </span>
                                     </td>
-                                    <td class="text-success">R$ {{ receita.valor|floatformat:2 }}</td>
+                                    <td class="text-success">{{ receita.valor|br_currency }}</td>
                                     <td>{{ receita.data|date:"d/m/Y" }}</td>
                                 </tr>
                                 {% empty %}
@@ -319,7 +320,7 @@
                                             {{ despesa.categoria.nome }}
                                         </span>
                                     </td>
-                                    <td class="text-danger">R$ {{ despesa.valor|floatformat:2 }}</td>
+                                    <td class="text-danger">{{ despesa.valor|br_currency }}</td>
                                     <td>{{ despesa.data|date:"d/m/Y" }}</td>
                                 </tr>
                                 {% empty %}
@@ -360,6 +361,16 @@ const dadosGraficos = {
     }
 };
 
+// Função para formatar valores no padrão brasileiro
+function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 // Gráfico de Receitas vs Despesas
 const ctxReceitasDespesas = document.getElementById('chartReceitasDespesas').getContext('2d');
 new Chart(ctxReceitasDespesas, {
@@ -388,7 +399,7 @@ new Chart(ctxReceitasDespesas, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        return 'R$ ' + value.toLocaleString('pt-BR');
+                        return formatarMoeda(value);
                     }
                 }
             }
@@ -397,7 +408,7 @@ new Chart(ctxReceitasDespesas, {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                        return context.dataset.label + ': ' + formatarMoeda(context.parsed.y);
                     }
                 }
             }
@@ -430,7 +441,7 @@ new Chart(ctxCategorias, {
                     label: function(context) {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const percentual = ((context.parsed / total) * 100).toFixed(1);
-                        return context.label + ': R$ ' + context.parsed.toLocaleString('pt-BR') + ' (' + percentual + '%)';
+                        return context.label + ': ' + formatarMoeda(context.parsed) + ' (' + percentual + '%)';
                     }
                 }
             }
@@ -475,7 +486,7 @@ new Chart(ctxEvolucao, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        return 'R$ ' + value.toLocaleString('pt-BR');
+                        return formatarMoeda(value);
                     }
                 }
             }
@@ -484,7 +495,7 @@ new Chart(ctxEvolucao, {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return context.dataset.label + ': R$ ' + context.parsed.y.toLocaleString('pt-BR');
+                        return context.dataset.label + ': ' + formatarMoeda(context.parsed.y);
                     }
                 }
             }

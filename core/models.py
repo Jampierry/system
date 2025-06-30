@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 import uuid
 from django.utils import timezone
+from datetime import date
 
 class Categoria(models.Model):
     TIPO_CHOICES = [
@@ -66,17 +67,25 @@ class Conta(models.Model):
 
     def atualizar_saldo(self):
         """Atualiza o saldo da conta baseado nas transações"""
+        # Receitas da conta
         receitas = self.receitas.filter(ativo=True).aggregate(
             total=models.Sum('valor'))['total'] or 0
+        
+        # Despesas da conta
         despesas = self.despesas.filter(ativo=True).aggregate(
             total=models.Sum('valor'))['total'] or 0
-        transferencias_entrada = self.transferencias_origem.filter(ativo=True).aggregate(
-            total=models.Sum('valor'))['total'] or 0
-        transferencias_saida = self.transferencias_destino.filter(ativo=True).aggregate(
+        
+        # Transferências onde esta conta é destino (entrada)
+        transferencias_entrada = self.transferencias_destino.filter(ativo=True).aggregate(
             total=models.Sum('valor'))['total'] or 0
         
+        # Transferências onde esta conta é origem (saída)
+        transferencias_saida = self.transferencias_origem.filter(ativo=True).aggregate(
+            total=models.Sum('valor'))['total'] or 0
+        
+        # Cálculo do saldo: saldo_inicial + receitas - despesas + transferências_entrada - transferências_saida
         self.saldo_atual = self.saldo_inicial + receitas - despesas + transferencias_entrada - transferencias_saida
-        self.save()
+        self.save(update_fields=['saldo_atual'])
 
 class Receita(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -133,6 +142,15 @@ class Despesa(models.Model):
         ('semestral', 'Semestral'),
         ('anual', 'Anual'),
     ])
+    # Novos campos para cartão de crédito
+    TIPO_PAGAMENTO_CHOICES = [
+        ('dinheiro', 'Dinheiro/Conta'),
+        ('cartao_credito_avista', 'Cartão de Crédito (à vista)'),
+        ('cartao_credito_parcelado', 'Cartão de Crédito (parcelado)'),
+    ]
+    tipo_pagamento = models.CharField(max_length=30, choices=TIPO_PAGAMENTO_CHOICES, default='dinheiro')
+    cartao = models.ForeignKey('CartaoCredito', null=True, blank=True, on_delete=models.SET_NULL, related_name='despesas_cartao')
+    parcelas = models.PositiveIntegerField(null=True, blank=True)
     ativo = models.BooleanField(default=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
@@ -149,6 +167,7 @@ class Despesa(models.Model):
         super().save(*args, **kwargs)
         # Atualiza o saldo da conta
         self.conta.atualizar_saldo()
+        # Se for cartão de crédito, pode atualizar limite/fatura futuramente
 
 class Transferencia(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -305,3 +324,78 @@ class Notificacao(models.Model):
             link='/dashboard/',
             icone='fas fa-chart-line'
         )
+
+class CartaoCredito(models.Model):
+    BANDEIRA_CHOICES = [
+        ('visa', 'Visa'),
+        ('mastercard', 'MasterCard'),
+        ('elo', 'Elo'),
+        ('amex', 'American Express'),
+        ('hipercard', 'Hipercard'),
+        ('diners', 'Diners Club'),
+        ('outros', 'Outros'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=100)
+    numero = models.CharField(max_length=20, blank=True, help_text='Apenas os 4 últimos dígitos')
+    bandeira = models.CharField(max_length=20, choices=BANDEIRA_CHOICES, default='visa')
+    titular = models.CharField(max_length=100)
+    data_vencimento_fatura = models.PositiveSmallIntegerField(help_text='Dia do vencimento da fatura')
+    data_fechamento_fatura = models.PositiveSmallIntegerField(help_text='Dia do fechamento da fatura')
+    limite_total = models.DecimalField(max_digits=12, decimal_places=2)
+    conta_pagamento = models.ForeignKey(Conta, on_delete=models.PROTECT, related_name='cartoes_pagamento')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cartoes_credito')
+    chave_seguranca = models.CharField(max_length=10, blank=True, help_text='CVV, não exibir em tela')
+    observacoes = models.TextField(blank=True)
+    ativo = models.BooleanField(default=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Cartão de Crédito'
+        verbose_name_plural = 'Cartões de Crédito'
+        ordering = ['nome']
+        unique_together = ['nome', 'usuario', 'numero']
+
+    def __str__(self):
+        return f"{self.nome} ({self.get_bandeira_display()})"
+
+    @property
+    def limite_utilizado(self):
+        # Soma das despesas em aberto vinculadas a este cartão
+        total = Despesa.objects.filter(cartao=self, ativo=True).aggregate(models.Sum('valor'))['valor__sum'] or 0
+        return total
+
+    @property
+    def limite_disponivel(self):
+        return self.limite_total - self.limite_utilizado
+
+    @property
+    def data_vencimento(self):
+        """Retorna a próxima data de vencimento da fatura"""
+        hoje = date.today()
+        # Calcula o próximo vencimento
+        if hoje.day > self.data_vencimento_fatura:
+            # Se já passou do dia de vencimento, vai para o próximo mês
+            if hoje.month == 12:
+                return date(hoje.year + 1, 1, self.data_vencimento_fatura)
+            else:
+                return date(hoje.year, hoje.month + 1, self.data_vencimento_fatura)
+        else:
+            # Se ainda não chegou o dia de vencimento, usa o mês atual
+            return date(hoje.year, hoje.month, self.data_vencimento_fatura)
+
+    @property
+    def data_fechamento(self):
+        """Retorna a próxima data de fechamento da fatura"""
+        hoje = date.today()
+        # Calcula o próximo fechamento
+        if hoje.day > self.data_fechamento_fatura:
+            # Se já passou do dia de fechamento, vai para o próximo mês
+            if hoje.month == 12:
+                return date(hoje.year + 1, 1, self.data_fechamento_fatura)
+            else:
+                return date(hoje.year, hoje.month + 1, self.data_fechamento_fatura)
+        else:
+            # Se ainda não chegou o dia de fechamento, usa o mês atual
+            return date(hoje.year, hoje.month, self.data_fechamento_fatura)

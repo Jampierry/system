@@ -23,7 +23,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="configForm">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -45,6 +45,7 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <div class="form-check form-switch">
+                                        <input type="hidden" name="tema_escuro" value="">
                                         {{ form.tema_escuro }}
                                         <label class="form-check-label" for="{{ form.tema_escuro.id_for_label }}">
                                             Tema Escuro
@@ -202,25 +203,21 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-// Aplicar tema escuro se configurado
+// Aplicar tema dark automaticamente quando o switch for alterado
 document.addEventListener('DOMContentLoaded', function() {
-    const temaEscuro = document.getElementById('{{ form.tema_escuro.id_for_label }}');
-    if (temaEscuro && temaEscuro.checked) {
-        document.body.setAttribute('data-theme', 'dark');
+    const temaEscuroSwitch = document.getElementById('{{ form.tema_escuro.id_for_label }}');
+    if (temaEscuroSwitch) {
+        temaEscuroSwitch.addEventListener('change', function() {
+            const html = document.documentElement;
+            if (this.checked) {
+                html.classList.add('dark-theme');
+            } else {
+                html.classList.remove('dark-theme');
+            }
+        });
     }
-    
-    // Atualizar tema quando checkbox mudar
-    temaEscuro.addEventListener('change', function() {
-        if (this.checked) {
-            document.body.setAttribute('data-theme', 'dark');
-        } else {
-            document.body.setAttribute('data-theme', 'light');
-        }
-    });
 });
 </script>
 {% endblock %} 

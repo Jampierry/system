@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load br_filters %}
 
 {% block title %}{{ title }} - SGFP{% endblock %}
 
@@ -188,7 +189,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="text-center">
-                                <h4 class="text-success mb-0" id="progressoRestante">R$ 0,00</h4>
+                                <h4 class="text-success mb-0" id="progressoRestante">{{ progresso_restante|br_currency }}</h4>
                                 <small class="text-muted">Restante</small>
                             </div>
                         </div>
@@ -199,11 +200,11 @@
                     </div>
                     <div class="row text-center">
                         <div class="col-md-4">
-                            <h6 class="text-info mb-0" id="progressoAtual">R$ 0,00</h6>
+                            <h6 class="text-info mb-0" id="progressoAtual">{{ progresso_atual|br_currency }}</h6>
                             <small class="text-muted">Valor Atual</small>
                         </div>
                         <div class="col-md-4">
-                            <h6 class="text-primary mb-0" id="progressoMeta">R$ 0,00</h6>
+                            <h6 class="text-primary mb-0" id="progressoMeta">{{ progresso_meta|br_currency }}</h6>
                             <small class="text-muted">Valor da Meta</small>
                         </div>
                         <div class="col-md-4">
@@ -271,42 +272,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Atualizar progresso em tempo real
-    function updateProgresso() {
-        const valorMeta = parseFloat(document.getElementById('{{ form.valor_meta.id_for_label }}').value) || 0;
+    // Função para formatar valores no padrão brasileiro
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Função para calcular e atualizar progresso
+    function atualizarProgresso() {
         const valorAtual = parseFloat(document.getElementById('{{ form.valor_atual.id_for_label }}').value) || 0;
-        const dataInicio = document.getElementById('{{ form.data_inicio.id_for_label }}').value;
-        const dataFim = document.getElementById('{{ form.data_fim.id_for_label }}').value;
-
-        // Calcular percentual
-        const percentual = valorMeta > 0 ? Math.min((valorAtual / valorMeta) * 100, 100) : 0;
-        const restante = Math.max(valorMeta - valorAtual, 0);
-
-        // Atualizar elementos
-        document.getElementById('progressoPercentual').textContent = `${percentual.toFixed(1)}%`;
-        document.getElementById('progressoRestante').textContent = `R$ ${restante.toFixed(2)}`;
-        document.getElementById('progressoAtual').textContent = `R$ ${valorAtual.toFixed(2)}`;
-        document.getElementById('progressoMeta').textContent = `R$ ${valorMeta.toFixed(2)}`;
+        const valorMeta = parseFloat(document.getElementById('{{ form.valor_meta.id_for_label }}').value) || 0;
+        const restante = Math.max(0, valorMeta - valorAtual);
+        
+        document.getElementById('progressoRestante').textContent = formatarMoeda(restante);
+        document.getElementById('progressoAtual').textContent = formatarMoeda(valorAtual);
+        document.getElementById('progressoMeta').textContent = formatarMoeda(valorMeta);
         
         // Atualizar barra de progresso
-        const progressoBarra = document.getElementById('progressoBarra');
-        progressoBarra.style.width = `${percentual}%`;
-        progressoBarra.textContent = `${percentual.toFixed(1)}%`;
-
-        // Calcular tempo restante
-        if (dataInicio && dataFim) {
-            const hoje = new Date();
-            const fim = new Date(dataFim);
-            const diasRestantes = Math.ceil((fim - hoje) / (1000 * 60 * 60 * 24));
-            
-            if (diasRestantes > 0) {
-                document.getElementById('progressoTempo').textContent = `${diasRestantes} dias`;
-            } else if (diasRestantes === 0) {
-                document.getElementById('progressoTempo').textContent = 'Hoje';
-            } else {
-                document.getElementById('progressoTempo').textContent = 'Expirada';
-            }
-        }
+        const percentual = valorMeta > 0 ? Math.min(100, (valorAtual / valorMeta) * 100) : 0;
+        document.getElementById('progressoBarra').style.width = percentual + '%';
+        document.getElementById('progressoPercentual').textContent = percentual.toFixed(1) + '%';
     }
 
     // Event listeners para progresso
@@ -315,13 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const dataInicioField = document.getElementById('{{ form.data_inicio.id_for_label }}');
     const dataFimField = document.getElementById('{{ form.data_fim.id_for_label }}');
     
-    if (valorMetaField) valorMetaField.addEventListener('input', updateProgresso);
-    if (valorAtualField) valorAtualField.addEventListener('input', updateProgresso);
-    if (dataInicioField) dataInicioField.addEventListener('change', updateProgresso);
-    if (dataFimField) dataFimField.addEventListener('change', updateProgresso);
+    if (valorMetaField) valorMetaField.addEventListener('input', atualizarProgresso);
+    if (valorAtualField) valorAtualField.addEventListener('input', atualizarProgresso);
+    if (dataInicioField) dataInicioField.addEventListener('change', atualizarProgresso);
+    if (dataFimField) dataFimField.addEventListener('change', atualizarProgresso);
 
     // Inicializar progresso
-    updateProgresso();
+    atualizarProgresso();
 });
 </script>
 {% endblock %} 

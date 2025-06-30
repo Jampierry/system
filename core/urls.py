@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import conta_atualizar_cor, categoria_atualizar_cor
 
 app_name = 'core'
 
@@ -12,12 +13,14 @@ urlpatterns = [
     path('categorias/nova/', views.categoria_create, name='categoria_create'),
     path('categorias/<uuid:pk>/editar/', views.categoria_update, name='categoria_update'),
     path('categorias/<uuid:pk>/remover/', views.categoria_delete, name='categoria_delete'),
+    path('categoria/<uuid:pk>/atualizar_cor/', categoria_atualizar_cor, name='categoria_atualizar_cor'),
     
     # Contas
     path('contas/', views.conta_list, name='conta_list'),
     path('contas/nova/', views.conta_create, name='conta_create'),
     path('contas/<uuid:pk>/editar/', views.conta_update, name='conta_update'),
     path('contas/<uuid:pk>/remover/', views.conta_delete, name='conta_delete'),
+    path('conta/<uuid:pk>/atualizar_cor/', conta_atualizar_cor, name='conta_atualizar_cor'),
     
     # Receitas
     path('receitas/', views.receita_list, name='receita_list'),
@@ -72,4 +75,10 @@ urlpatterns = [
     path('excluir_dados_ficticios/', views.excluir_dados_ficticios, name='excluir_dados_ficticios'),
     path('exportar_banco_completo/', views.exportar_banco_completo, name='exportar_banco_completo'),
     path('importar_banco_completo/', views.importar_banco_completo, name='importar_banco_completo'),
+    
+    # Cartões de Crédito
+    path('cartoes/', views.cartao_credito_list, name='cartao_credito_list'),
+    path('cartoes/novo/', views.cartao_credito_create, name='cartao_credito_create'),
+    path('cartoes/<uuid:pk>/editar/', views.cartao_credito_update, name='cartao_credito_update'),
+    path('cartoes/<uuid:pk>/remover/', views.cartao_credito_delete, name='cartao_credito_delete'),
 ] 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load br_filters %}
 
 {% block title %}Confirmar Remoção - SGFP{% endblock %}
 
@@ -33,7 +34,7 @@
                             {% if conta.conta %}
                             <li><strong>Conta:</strong> {{ conta.conta }}</li>
                             {% endif %}
-                            <li><strong>Saldo Atual:</strong> R$ {{ conta.saldo_atual|floatformat:2 }}</li>
+                            <li><strong>Saldo Atual:</strong> {{ conta.saldo_atual|br_currency }}</li>
                         </ul>
                     </div>
 

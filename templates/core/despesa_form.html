@@ -117,16 +117,33 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="{{ form.forma_pagamento.id_for_label }}" class="form-label">Forma de Pagamento</label>
-                                    {{ form.forma_pagamento }}
-                                    {% if form.forma_pagamento.errors %}
-                                    <div class="text-danger small">{{ form.forma_pagamento.errors.0 }}</div>
+                                    <label for="{{ form.tipo_pagamento.id_for_label }}" class="form-label">
+                                        Forma de Pagamento <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.tipo_pagamento }}
+                                    {% if form.tipo_pagamento.errors %}
+                                    <div class="text-danger small">{{ form.tipo_pagamento.errors.0 }}</div>
                                     {% endif %}
                                 </div>
                             </div>
+                            <div class="col-md-6" id="cartaoField" style="display:none;">
+                                <div class="mb-3">
+                                    <label for="{{ form.cartao.id_for_label }}" class="form-label">
+                                        Cartão de Crédito <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.cartao }}
+                                    {% if form.cartao.errors %}
+                                    <div class="text-danger small">{{ form.cartao.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="parcelasField" style="display:none;">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="{{ form.parcelas.id_for_label }}" class="form-label">Número de Parcelas</label>
+                                    <label for="{{ form.parcelas.id_for_label }}" class="form-label">
+                                        Número de Parcelas <span class="text-danger">*</span>
+                                    </label>
                                     {{ form.parcelas }}
                                     {% if form.parcelas.errors %}
                                     <div class="text-danger small">{{ form.parcelas.errors.0 }}</div>
@@ -215,6 +232,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.value = value.toFixed(2);
             }
         });
+    }
+
+    // Exibir/ocultar campos de cartão e parcelas
+    function toggleCartaoParcelas() {
+        const tipoPagamento = document.getElementById('{{ form.tipo_pagamento.id_for_label }}');
+        const cartaoField = document.getElementById('cartaoField');
+        const parcelasField = document.getElementById('parcelasField');
+        if (!tipoPagamento) return;
+        if (tipoPagamento.value === 'cartao_credito_avista') {
+            cartaoField.style.display = '';
+            parcelasField.style.display = 'none';
+        } else if (tipoPagamento.value === 'cartao_credito_parcelado') {
+            cartaoField.style.display = '';
+            parcelasField.style.display = '';
+        } else {
+            cartaoField.style.display = 'none';
+            parcelasField.style.display = 'none';
+        }
+    }
+    const tipoPagamento = document.getElementById('{{ form.tipo_pagamento.id_for_label }}');
+    if (tipoPagamento) {
+        tipoPagamento.addEventListener('change', toggleCartaoParcelas);
+        toggleCartaoParcelas();
     }
 });
 </script>

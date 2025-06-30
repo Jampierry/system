@@ -1,0 +1,28 @@
+# Django e dependências principais
+Django>=5.0.0
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+
+# Processamento de dados e gráficos
+Pillow>=10.0.0
+matplotlib>=3.7.0
+
+# Utilitários
+python-dateutil>=2.8.2
+
+# Para desenvolvimento (opcional)
+django-debug-toolbar>=4.0.0
+
+# Para produção (opcional)
+# gunicorn>=21.0.0
+# whitenoise>=6.5.0
+
+# Integração com Google Drive (futura implementação)
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+google-api-python-client>=2.100.0
+
+# Utilitários adicionais
+requests>=2.31.0
+python-dotenv>=1.0.0 

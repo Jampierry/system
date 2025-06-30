@@ -14,11 +14,15 @@ from django.core.files.uploadedfile import UploadedFile
 import uuid
 import os
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import logging
 
-from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao
+from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao, CartaoCredito
 from .forms import (
     UserRegistrationForm, CategoriaForm, ContaForm, ReceitaForm, DespesaForm,
-    TransferenciaForm, MetaForm, ConfiguracaoForm, FiltroRelatorioForm, ReceitaFiltroForm, DespesaFiltroForm
+    TransferenciaForm, MetaForm, ConfiguracaoForm, FiltroRelatorioForm, ReceitaFiltroForm, DespesaFiltroForm,
+    CartaoCreditoForm
 )
 
 def register(request):
@@ -285,7 +289,67 @@ def dashboard(request):
     transacoes_recentes = transacoes_recentes[:10]
     
     # Cartões de crédito
-    cartoes_credito = Conta.objects.filter(usuario=request.user, tipo='cartao_credito', ativo=True)
+    cartoes_credito = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    
+    # Dados dos cartões de crédito
+    total_limite_cartoes = cartoes_credito.aggregate(total=Sum('limite_total'))['total'] or 0
+    
+    # Calcular limite utilizado somando as despesas em cartão
+    total_utilizado_cartoes = Despesa.objects.filter(
+        cartao__in=cartoes_credito,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+    
+    total_disponivel_cartoes = total_limite_cartoes - total_utilizado_cartoes
+    
+    # Calcular percentual de utilização
+    percentual_utilizacao = 0
+    if total_limite_cartoes > 0:
+        percentual_utilizacao = (total_utilizado_cartoes / total_limite_cartoes) * 100
+    
+    # Despesas em cartão de crédito no mês atual
+    despesas_cartao_mes = Despesa.objects.filter(
+        usuario=request.user,
+        cartao__isnull=False,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+    
+    # Cartões próximos do vencimento (próximos 7 dias)
+    hoje = timezone.now().date()
+    cartoes_vencendo = []
+    
+    for cartao in cartoes_credito:
+        data_vencimento = cartao.data_vencimento
+        dias_restantes = (data_vencimento - hoje).days
+        if 0 <= dias_restantes <= 7:
+            cartoes_vencendo.append(cartao)
+    
+    # Alertas para cartões de crédito
+    for cartao in cartoes_credito:
+        limite_utilizado = cartao.limite_utilizado
+        limite_disponivel = cartao.limite_disponivel
+        
+        # Alerta de limite próximo do esgotamento
+        if limite_disponivel < cartao.limite_total * Decimal('0.1'):  # Menos de 10% disponível
+            alertas.append({
+                'tipo': 'warning',
+                'titulo': f'Cartão: {cartao.nome}',
+                'mensagem': f'Limite quase esgotado. Disponível: {limite_disponivel:.2f}',
+                'data': hoje
+            })
+        
+        # Alerta de vencimento próximo
+        data_vencimento = cartao.data_vencimento
+        dias_vencimento = (data_vencimento - hoje).days
+        if 0 <= dias_vencimento <= 3:
+            alertas.append({
+                'tipo': 'danger',
+                'titulo': f'Cartão: {cartao.nome}',
+                'mensagem': f'Fatura vence em {dias_vencimento} dias',
+                'data': hoje
+            })
     
     context = {
         'receitas_mes': receitas_mes,
@@ -315,6 +379,12 @@ def dashboard(request):
         'metas_destaque': metas_destaque,
         'transacoes_recentes': transacoes_recentes,
         'cartoes_credito': cartoes_credito,
+        'total_limite_cartoes': total_limite_cartoes,
+        'total_utilizado_cartoes': total_utilizado_cartoes,
+        'total_disponivel_cartoes': total_disponivel_cartoes,
+        'despesas_cartao_mes': despesas_cartao_mes,
+        'cartoes_vencendo': cartoes_vencendo,
+        'percentual_utilizacao': percentual_utilizacao,
     }
     
     return render(request, 'core/dashboard.html', context)
@@ -328,15 +398,15 @@ def categoria_list(request):
 @login_required
 def categoria_create(request):
     if request.method == 'POST':
-        form = CategoriaForm(request.POST)
+        form = CategoriaForm(request.POST, user=request.user)
         if form.is_valid():
             categoria = form.save(commit=False)
             categoria.usuario = request.user
             categoria.save()
             messages.success(request, 'Categoria criada com sucesso!')
-            return redirect('categoria_list')
+            return redirect('core:categoria_list')
     else:
-        form = CategoriaForm()
+        form = CategoriaForm(user=request.user)
     
     return render(request, 'core/categoria_form.html', {'form': form, 'title': 'Nova Categoria'})
 
@@ -344,13 +414,13 @@ def categoria_create(request):
 def categoria_update(request, pk):
     categoria = get_object_or_404(Categoria, pk=pk, usuario=request.user)
     if request.method == 'POST':
-        form = CategoriaForm(request.POST, instance=categoria)
+        form = CategoriaForm(request.POST, instance=categoria, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Categoria atualizada com sucesso!')
-            return redirect('categoria_list')
+            return redirect('core:categoria_list')
     else:
-        form = CategoriaForm(instance=categoria)
+        form = CategoriaForm(instance=categoria, user=request.user)
     
     return render(request, 'core/categoria_form.html', {'form': form, 'title': 'Editar Categoria'})
 
@@ -361,9 +431,35 @@ def categoria_delete(request, pk):
         categoria.ativo = False
         categoria.save()
         messages.success(request, 'Categoria removida com sucesso!')
-        return redirect('categoria_list')
+        return redirect('core:categoria_list')
     
     return render(request, 'core/categoria_confirmar_remocao.html', {'categoria': categoria})
+
+@csrf_exempt
+@require_POST
+@login_required
+def categoria_atualizar_cor(request, pk):
+    import json
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info(f"Tentando atualizar cor da categoria {pk}")
+        categoria = get_object_or_404(Categoria, pk=pk, usuario=request.user)
+        data = json.loads(request.body)
+        nova_cor = data.get('cor')
+        logger.info(f"Nova cor recebida: {nova_cor}")
+        
+        if nova_cor and isinstance(nova_cor, str) and nova_cor.startswith('#'):
+            categoria.cor = nova_cor
+            categoria.save()
+            logger.info(f"Cor da categoria {pk} atualizada para {nova_cor}")
+            return JsonResponse({'success': True, 'cor': nova_cor})
+        else:
+            logger.error(f"Cor inválida recebida: {nova_cor}")
+            return JsonResponse({'success': False, 'error': 'Cor inválida'}, status=400)
+    except Exception as e:
+        logger.error(f"Erro ao atualizar cor da categoria {pk}: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # Views para Contas
 @login_required
@@ -376,15 +472,15 @@ def conta_list(request):
 @login_required
 def conta_create(request):
     if request.method == 'POST':
-        form = ContaForm(request.POST)
+        form = ContaForm(request.POST, user=request.user)
         if form.is_valid():
             conta = form.save(commit=False)
             conta.usuario = request.user
             conta.save()
             messages.success(request, 'Conta criada com sucesso!')
-            return redirect('conta_list')
+            return redirect('core:conta_list')
     else:
-        form = ContaForm()
+        form = ContaForm(user=request.user)
     
     return render(request, 'core/conta_form.html', {'form': form, 'title': 'Nova Conta'})
 
@@ -392,13 +488,13 @@ def conta_create(request):
 def conta_update(request, pk):
     conta = get_object_or_404(Conta, pk=pk, usuario=request.user)
     if request.method == 'POST':
-        form = ContaForm(request.POST, instance=conta)
+        form = ContaForm(request.POST, instance=conta, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Conta atualizada com sucesso!')
-            return redirect('conta_list')
+            return redirect('core:conta_list')
     else:
-        form = ContaForm(instance=conta)
+        form = ContaForm(instance=conta, user=request.user)
     
     return render(request, 'core/conta_form.html', {'form': form, 'title': 'Editar Conta'})
 
@@ -409,9 +505,35 @@ def conta_delete(request, pk):
         conta.ativo = False
         conta.save()
         messages.success(request, 'Conta removida com sucesso!')
-        return redirect('conta_list')
+        return redirect('core:conta_list')
     
     return render(request, 'core/conta_confirmar_remocao.html', {'conta': conta})
+
+@csrf_exempt
+@require_POST
+@login_required
+def conta_atualizar_cor(request, pk):
+    import json
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info(f"Tentando atualizar cor da conta {pk}")
+        conta = get_object_or_404(Conta, pk=pk, usuario=request.user)
+        data = json.loads(request.body)
+        nova_cor = data.get('cor')
+        logger.info(f"Nova cor recebida: {nova_cor}")
+        
+        if nova_cor and isinstance(nova_cor, str) and nova_cor.startswith('#'):
+            conta.cor = nova_cor
+            conta.save()
+            logger.info(f"Cor da conta {pk} atualizada para {nova_cor}")
+            return JsonResponse({'success': True, 'cor': nova_cor})
+        else:
+            logger.error(f"Cor inválida recebida: {nova_cor}")
+            return JsonResponse({'success': False, 'error': 'Cor inválida'}, status=400)
+    except Exception as e:
+        logger.error(f"Erro ao atualizar cor da conta {pk}: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 # Views para Receitas
 @login_required
@@ -443,7 +565,11 @@ def receita_list(request):
             receitas = receitas.filter(recorrente=recorrente)
         if busca_texto:
             receitas = receitas.filter(descricao__icontains=busca_texto)
-    return render(request, 'core/receitas_list.html', {'receitas': receitas, 'form_filtro': form})
+    
+    return render(request, 'core/receitas_list.html', {
+        'receitas': receitas, 
+        'form_filtro': form
+    })
 
 @login_required
 def receita_create(request):
@@ -454,7 +580,7 @@ def receita_create(request):
             receita.usuario = request.user
             receita.save()
             messages.success(request, 'Receita registrada com sucesso!')
-            return redirect('receita_list')
+            return redirect('core:receita_list')
     else:
         form = ReceitaForm(user=request.user)
     
@@ -468,7 +594,7 @@ def receita_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Receita atualizada com sucesso!')
-            return redirect('receita_list')
+            return redirect('core:receita_list')
     else:
         form = ReceitaForm(instance=receita, user=request.user)
     
@@ -513,7 +639,11 @@ def despesa_list(request):
             despesas = despesas.filter(recorrente=recorrente)
         if busca_texto:
             despesas = despesas.filter(descricao__icontains=busca_texto)
-    return render(request, 'core/despesas_list.html', {'despesas': despesas, 'form_filtro': form})
+    
+    return render(request, 'core/despesas_list.html', {
+        'despesas': despesas, 
+        'form_filtro': form
+    })
 
 @login_required
 def despesa_create(request):
@@ -524,7 +654,7 @@ def despesa_create(request):
             despesa.usuario = request.user
             despesa.save()
             messages.success(request, 'Despesa registrada com sucesso!')
-            return redirect('despesa_list')
+            return redirect('core:despesa_list')
     else:
         form = DespesaForm(user=request.user)
     
@@ -538,7 +668,7 @@ def despesa_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Despesa atualizada com sucesso!')
-            return redirect('despesa_list')
+            return redirect('core:despesa_list')
     else:
         form = DespesaForm(instance=despesa, user=request.user)
     
@@ -557,20 +687,43 @@ def despesa_delete(request, pk):
 def despesa_edit(request, pk):
     despesa = get_object_or_404(Despesa, pk=pk, usuario=request.user)
     if request.method == 'POST':
-        form = DespesaForm(request.POST, instance=despesa)
+        form = DespesaForm(request.POST, instance=despesa, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Despesa atualizada com sucesso!')
             return redirect('core:despesa_list')
     else:
-        form = DespesaForm(instance=despesa)
-    return render(request, 'core/despesa_form.html', {'form': form, 'despesa': despesa})
+        form = DespesaForm(instance=despesa, user=request.user)
+    
+    return render(request, 'core/despesa_form.html', {'form': form, 'title': 'Editar Despesa'})
 
 # Views para Transferências
 @login_required
 def transferencia_list(request):
     transferencias = Transferencia.objects.filter(usuario=request.user, ativo=True).order_by('-data')
-    return render(request, 'core/transferencias_list.html', {'transferencias': transferencias})
+    
+    # Aplicar filtros se fornecidos
+    conta_origem = request.GET.get('conta_origem')
+    conta_destino = request.GET.get('conta_destino')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    
+    if conta_origem:
+        transferencias = transferencias.filter(conta_origem_id=conta_origem)
+    if conta_destino:
+        transferencias = transferencias.filter(conta_destino_id=conta_destino)
+    if data_inicio:
+        transferencias = transferencias.filter(data__gte=data_inicio)
+    if data_fim:
+        transferencias = transferencias.filter(data__lte=data_fim)
+    
+    # Adicionar contas para os filtros
+    contas = Conta.objects.filter(usuario=request.user, ativo=True).order_by('nome')
+    
+    return render(request, 'core/transferencias_list.html', {
+        'transferencias': transferencias,
+        'contas': contas
+    })
 
 @login_required
 def transferencia_create(request):
@@ -581,7 +734,7 @@ def transferencia_create(request):
             transferencia.usuario = request.user
             transferencia.save()
             messages.success(request, 'Transferência registrada com sucesso!')
-            return redirect('transferencia_list')
+            return redirect('core:transferencia_list')
     else:
         form = TransferenciaForm(user=request.user)
     
@@ -595,7 +748,7 @@ def transferencia_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Transferência atualizada com sucesso!')
-            return redirect('transferencia_list')
+            return redirect('core:transferencia_list')
     else:
         form = TransferenciaForm(instance=transferencia, user=request.user)
     
@@ -625,7 +778,7 @@ def meta_create(request):
             meta.usuario = request.user
             meta.save()
             messages.success(request, 'Meta criada com sucesso!')
-            return redirect('meta_list')
+            return redirect('core:meta_list')
     else:
         form = MetaForm(user=request.user)
     
@@ -639,7 +792,7 @@ def meta_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Meta atualizada com sucesso!')
-            return redirect('meta_list')
+            return redirect('core:meta_list')
     else:
         form = MetaForm(instance=meta, user=request.user)
     
@@ -652,7 +805,7 @@ def meta_delete(request, pk):
         meta.ativo = False
         meta.save()
         messages.success(request, 'Meta removida com sucesso!')
-        return redirect('meta_list')
+        return redirect('core:meta_list')
     
     return render(request, 'core/meta_confirmar_remocao.html', {'meta': meta})
 
@@ -1136,3 +1289,45 @@ def importar_banco_completo(request):
         except Exception as e:
             return render(request, 'core/importar_banco.html', {'erro': f'Erro ao restaurar banco: {str(e)}'})
     return render(request, 'core/importar_banco.html')
+
+@login_required
+def cartao_credito_list(request):
+    cartoes = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    return render(request, 'core/cartoes_credito_list.html', {'cartoes': cartoes})
+
+@login_required
+def cartao_credito_create(request):
+    if request.method == 'POST':
+        form = CartaoCreditoForm(request.POST, user=request.user)
+        if form.is_valid():
+            cartao = form.save(commit=False)
+            cartao.usuario = request.user
+            cartao.save()
+            messages.success(request, 'Cartão cadastrado com sucesso!')
+            return redirect('core:cartao_credito_list')
+    else:
+        form = CartaoCreditoForm(user=request.user)
+    return render(request, 'core/cartao_credito_form.html', {'form': form, 'title': 'Novo Cartão de Crédito'})
+
+@login_required
+def cartao_credito_update(request, pk):
+    cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        form = CartaoCreditoForm(request.POST, instance=cartao, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cartão atualizado com sucesso!')
+            return redirect('core:cartao_credito_list')
+    else:
+        form = CartaoCreditoForm(instance=cartao, user=request.user)
+    return render(request, 'core/cartao_credito_form.html', {'form': form, 'title': 'Editar Cartão de Crédito'})
+
+@login_required
+def cartao_credito_delete(request, pk):
+    cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        cartao.ativo = False
+        cartao.save()
+        messages.success(request, 'Cartão removido com sucesso!')
+        return redirect('core:cartao_credito_list')
+    return render(request, 'core/cartao_credito_confirmar_remocao.html', {'cartao': cartao})

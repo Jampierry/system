@@ -30,9 +30,15 @@
                         {% for categoria in categorias %}
                         <tr>
                             <td>{{ categoria.nome }}</td>
-                            <td>{{ categoria.get_tipo_display }}</td>
-                            <td><span class="badge rounded-circle" style="background-color: {{ categoria.cor }}; width: 24px; height: 24px; display: inline-block;">&nbsp;</span></td>
-                            <td><i class="{{ categoria.icone }}"></i> {{ categoria.icone }}</td>
+                            <td>
+                                <span class="badge" id="tipo-badge-cat-{{ categoria.id }}" style="background-color: {{ categoria.cor }}; color: #fff;">
+                                    {{ categoria.get_tipo_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="color" id="input-cor-{{ categoria.id }}" value="{{ categoria.cor }}" style="width:24px; height:24px; border:none; background:none; padding:0; border-radius:50%; cursor:pointer;" onchange="atualizarCorCategoria({{ categoria.id }}, this.value)">
+                            </td>
+                            <td><i class="{{ categoria.icone }}" id="categoria-icone-{{ categoria.id }}" style="color: {{ categoria.cor }};"></i></td>
                             <td>
                                 <a href="{% url 'core:categoria_update' categoria.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -59,4 +65,65 @@
         </div>
     </div>
 </div>
+<script>
+function atualizarCorCategoria(catId, novaCor) {
+    console.log('Tentando atualizar cor da categoria:', catId, 'para:', novaCor);
+    
+    const csrfToken = getCookie('csrftoken');
+    console.log('CSRF Token:', csrfToken);
+    
+    fetch(`/core/categoria/${catId}/atualizar_cor/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ cor: novaCor })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Atualiza os elementos que existem na linha
+            const tipoBadge = document.getElementById('tipo-badge-cat-' + catId);
+            const categoriaIcone = document.getElementById('categoria-icone-' + catId);
+            
+            if (tipoBadge) {
+                tipoBadge.style.backgroundColor = novaCor;
+                console.log('Badge atualizado');
+            }
+            if (categoriaIcone) {
+                categoriaIcone.style.color = novaCor;
+                console.log('Ícone atualizado');
+            }
+        } else {
+            console.error('Erro na resposta:', data.error);
+            alert('Erro ao atualizar cor da categoria: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição:', error);
+        alert('Erro ao atualizar cor da categoria.');
+    });
+}
+
+// Função para pegar o CSRF token do cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %} 

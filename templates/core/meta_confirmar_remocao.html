@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load br_filters %}
 
 {% block title %}Confirmar Remoção - SGFP{% endblock %}
 
@@ -24,8 +25,8 @@
                         <ul class="mb-0">
                             <li><strong>Título:</strong> {{ meta.titulo }}</li>
                             <li><strong>Tipo:</strong> {{ meta.get_tipo_display }}</li>
-                            <li><strong>Valor da Meta:</strong> R$ {{ meta.valor_meta|floatformat:2 }}</li>
-                            <li><strong>Valor Atual:</strong> R$ {{ meta.valor_atual|floatformat:2 }}</li>
+                            <li><strong>Valor da Meta:</strong> {{ meta.valor_meta|br_currency }}</li>
+                            <li><strong>Valor Atual:</strong> {{ meta.valor_atual|br_currency }}</li>
                             <li><strong>Período:</strong> {{ meta.data_inicio|date:"d/m/Y" }} a {{ meta.data_fim|date:"d/m/Y" }}</li>
                             <li><strong>Status:</strong> 
                                 {% if meta.ativa %}
@@ -40,26 +41,24 @@
                     <!-- Progresso da Meta -->
                     <div class="alert alert-info">
                         <h6><i class="fas fa-chart-line me-2"></i>Progresso da Meta</h6>
-                        {% with percentual=meta.valor_atual|div:meta.valor_meta|mul:100 %}
                         <div class="progress mb-2" style="height: 20px;">
                             <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {{ percentual|floatformat:1 }}%">
-                                {{ percentual|floatformat:1 }}%
+                                 style="width: {{ meta.percentual_concluido|floatformat:1 }}%">
+                                {{ meta.percentual_concluido|floatformat:1 }}%
                             </div>
                         </div>
-                        {% endwith %}
                         <div class="row text-center">
                             <div class="col-4">
                                 <small class="text-muted">Atual</small>
-                                <div><strong>R$ {{ meta.valor_atual|floatformat:2 }}</strong></div>
+                                <div><strong>{{ meta.valor_atual|br_currency }}</strong></div>
                             </div>
                             <div class="col-4">
                                 <small class="text-muted">Meta</small>
-                                <div><strong>R$ {{ meta.valor_meta|floatformat:2 }}</strong></div>
+                                <div><strong>{{ meta.valor_meta|br_currency }}</strong></div>
                             </div>
                             <div class="col-4">
                                 <small class="text-muted">Restante</small>
-                                <div><strong>R$ {{ meta.valor_meta|sub:meta.valor_atual|floatformat:2 }}</strong></div>
+                                <div><strong>{{ meta.valor_restante|br_currency }}</strong></div>
                             </div>
                         </div>
                     </div>

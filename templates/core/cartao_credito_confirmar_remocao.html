@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load br_filters %}
-
-{% block title %}Confirmar Remoção - SGFP{% endblock %}
-
+{% block title %}Remover Cartão de Crédito - SGFP{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row justify-content-center">
@@ -15,34 +13,27 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-4">
-                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                        <h4>Remover Despesa</h4>
-                        <p class="text-muted">Tem certeza que deseja remover esta despesa?</p>
+                        <i class="fas fa-credit-card fa-3x text-danger mb-3"></i>
+                        <h4>Remover Cartão</h4>
+                        <p class="text-muted">Tem certeza que deseja remover o cartão <strong>{{ cartao.nome }}</strong>?</p>
                     </div>
-
                     <div class="alert alert-warning">
-                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Despesa</h6>
+                        <h6><i class="fas fa-info-circle me-2"></i>Detalhes do Cartão</h6>
                         <ul class="mb-0">
-                            <li><strong>Descrição:</strong> {{ despesa.descricao }}</li>
-                            <li><strong>Valor:</strong> {{ despesa.valor|br_currency }}</li>
-                            <li><strong>Data:</strong> {{ despesa.data|date:"d/m/Y" }}</li>
-                            <li><strong>Categoria:</strong> {{ despesa.categoria.nome }}</li>
-                            <li><strong>Conta:</strong> {{ despesa.conta.nome }}</li>
-                            {% if despesa.forma_pagamento %}
-                            <li><strong>Forma de Pagamento:</strong> {{ despesa.get_forma_pagamento_display }}</li>
-                            {% endif %}
+                            <li><strong>Bandeira:</strong> {{ cartao.get_bandeira_display }}</li>
+                            <li><strong>Titular:</strong> {{ cartao.titular }}</li>
+                            <li><strong>Final:</strong> {{ cartao.numero|default:'****' }}</li>
+                            <li><strong>Limite:</strong> {{ cartao.limite_total|br_currency }}</li>
                         </ul>
                     </div>
-
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. A despesa será marcada como inativa e não aparecerá mais nas listagens.
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita. O cartão será marcado como inativo.
                     </div>
-
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-flex justify-content-center gap-3">
-                            <a href="{% url 'core:despesa_list' %}" class="btn btn-secondary">
+                            <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>Cancelar
                             </a>
                             <button type="submit" class="btn btn-danger">

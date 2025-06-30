@@ -31,10 +31,16 @@
                         {% for conta in contas %}
                         <tr>
                             <td>{{ conta.nome }}</td>
-                            <td>{{ conta.get_tipo_display }}</td>
-                            <td class="fw-bold">{{ conta.saldo_atual|br_currency }}</td>
-                            <td><span class="badge rounded-circle" style="background-color: {{ conta.cor }}; width: 24px; height: 24px; display: inline-block;">&nbsp;</span></td>
-                            <td><i class="{{ conta.icone }}"></i> {{ conta.icone }}</td>
+                            <td>
+                                <span class="badge" id="tipo-badge-{{ conta.id }}" style="background-color: {{ conta.cor }}; color: #fff;">
+                                    {{ conta.get_tipo_display }}
+                                </span>
+                            </td>
+                            <td class="fw-bold {% if conta.saldo_atual >= 0 %}text-success{% else %}text-danger{% endif %}">{{ conta.saldo_atual|br_currency }}</td>
+                            <td>
+                                <input type="color" id="input-cor-{{ conta.id }}" value="{{ conta.cor }}" style="width:24px; height:24px; border:none; background:none; padding:0; border-radius:50%; cursor:pointer;" onchange="atualizarCorConta({{ conta.id }}, this.value)">
+                            </td>
+                            <td><i class="{{ conta.icone }}" id="conta-icone-{{ conta.id }}" style="color: {{ conta.cor }};"></i></td>
                             <td>
                                 <a href="{% url 'core:conta_update' conta.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
                                     <i class="fas fa-edit"></i>
@@ -61,4 +67,65 @@
         </div>
     </div>
 </div>
+<script>
+function atualizarCorConta(contaId, novaCor) {
+    console.log('Tentando atualizar cor da conta:', contaId, 'para:', novaCor);
+    
+    const csrfToken = getCookie('csrftoken');
+    console.log('CSRF Token:', csrfToken);
+    
+    fetch(`/core/conta/${contaId}/atualizar_cor/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ cor: novaCor })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Atualiza os elementos que existem na linha
+            const tipoBadge = document.getElementById('tipo-badge-' + contaId);
+            const contaIcone = document.getElementById('conta-icone-' + contaId);
+            
+            if (tipoBadge) {
+                tipoBadge.style.backgroundColor = novaCor;
+                console.log('Badge atualizado');
+            }
+            if (contaIcone) {
+                contaIcone.style.color = novaCor;
+                console.log('Ícone atualizado');
+            }
+        } else {
+            console.error('Erro na resposta:', data.error);
+            alert('Erro ao atualizar cor da conta: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erro na requisição:', error);
+        alert('Erro ao atualizar cor da conta.');
+    });
+}
+
+// Função para pegar o CSRF token do cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %} 

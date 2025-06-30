@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load br_filters %}
 
 {% block title %}Confirmar Remoção - SGFP{% endblock %}
 
@@ -23,7 +24,7 @@
                         <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Receita</h6>
                         <ul class="mb-0">
                             <li><strong>Descrição:</strong> {{ receita.descricao }}</li>
-                            <li><strong>Valor:</strong> R$ {{ receita.valor|floatformat:2 }}</li>
+                            <li><strong>Valor:</strong> {{ receita.valor|br_currency }}</li>
                             <li><strong>Data:</strong> {{ receita.data|date:"d/m/Y" }}</li>
                             <li><strong>Categoria:</strong> {{ receita.categoria.nome }}</li>
                             <li><strong>Conta:</strong> {{ receita.conta.nome }}</li>

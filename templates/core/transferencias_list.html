@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load br_filters %}
 {% block title %}Transferências - SGFP{% endblock %}
 
 {% block content %}
@@ -83,7 +84,7 @@
                                     <i class="{{ transferencia.conta_destino.icone }} me-1"></i>{{ transferencia.conta_destino.nome }}
                                 </span>
                             </td>
-                            <td class="fw-bold">R$ {{ transferencia.valor|floatformat:2 }}</td>
+                            <td class="fw-bold">{{ transferencia.valor|br_currency }}</td>
                             <td>
                                 <a href="{% url 'core:transferencia_update' transferencia.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
                                     <i class="fas fa-edit"></i>

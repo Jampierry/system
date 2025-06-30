@@ -38,10 +38,21 @@
                             <td>{{ meta.valor_atual|br_currency }}</td>
                             <td>{{ meta.data_inicio|date:"d/m/Y" }}</td>
                             <td>{{ meta.data_fim|date:"d/m/Y" }}</td>
-                            <td>{{ meta.get_tipo_display }}</td>
-                            <td>{% if meta.categoria %}{{ meta.categoria.nome }}{% else %}-{% endif %}</td>
-                            <td>{% if meta.conta %}{{ meta.conta.nome }}{% else %}-{% endif %}</td>
-                            <td><span class="badge" style="background-color: {{ meta.categoria.cor }};">&nbsp;&nbsp;</span></td>
+                            <td>
+                                <span class="badge" style="background-color: {% if meta.categoria %}{{ meta.categoria.cor }}{% else %}#ffc107{% endif %}; color: #fff;">
+                                    {{ meta.get_tipo_display }}
+                                </span>
+                            </td>
+                            <td>{% if meta.categoria %}
+                                <span class="badge" style="background-color: {{ meta.categoria.cor }}; color: #fff;">
+                                    {{ meta.categoria.nome }}
+                                </span>
+                            {% else %}-{% endif %}</td>
+                            <td>{% if meta.conta %}
+                                <span class="badge" style="background-color: {{ meta.conta.cor }}; color: #fff;">
+                                    {{ meta.conta.nome }}
+                                </span>
+                            {% else %}-{% endif %}</td>
                             <td>
                                 <a href="{% url 'core:meta_update' meta.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
                                     <i class="fas fa-edit"></i>

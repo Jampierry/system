@@ -239,26 +239,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Atualizar resumo em tempo real
-    function updateResumo() {
+    // Função para formatar valores no padrão brasileiro
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Função para calcular e atualizar resumo
+    function atualizarResumo() {
         const valor = parseFloat(document.getElementById('{{ form.valor.id_for_label }}').value) || 0;
         const taxa = parseFloat(document.getElementById('{{ form.taxa.id_for_label }}').value) || 0;
         const total = valor + taxa;
-
-        document.getElementById('resumoValor').textContent = `R$ ${valor.toFixed(2)}`;
-        document.getElementById('resumoTaxa').textContent = `R$ ${taxa.toFixed(2)}`;
-        document.getElementById('resumoTotal').textContent = `R$ ${total.toFixed(2)}`;
+        
+        document.getElementById('resumoValor').textContent = formatarMoeda(valor);
+        document.getElementById('resumoTaxa').textContent = formatarMoeda(taxa);
+        document.getElementById('resumoTotal').textContent = formatarMoeda(total);
     }
 
     // Event listeners para resumo
     const valorField = document.getElementById('{{ form.valor.id_for_label }}');
     const taxaField = document.getElementById('{{ form.taxa.id_for_label }}');
     
-    if (valorField) valorField.addEventListener('input', updateResumo);
-    if (taxaField) taxaField.addEventListener('input', updateResumo);
+    if (valorField) valorField.addEventListener('input', atualizarResumo);
+    if (taxaField) taxaField.addEventListener('input', atualizarResumo);
 
     // Inicializar resumo
-    updateResumo();
+    atualizarResumo();
 });
 </script>
 {% endblock %} 

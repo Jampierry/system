@@ -4,61 +4,87 @@ Um sistema web completo para gestão financeira pessoal desenvolvido com Django,
 
 ## 🚀 Funcionalidades
 
-### 📊 Dashboard
-- Visão geral das finanças do mês atual
-- Gráficos interativos de receitas vs despesas
+### 📊 Dashboard Inteligente
+- Visão geral das finanças do mês atual com métricas em tempo real
+- Gráficos interativos de receitas vs despesas (Chart.js)
 - Cards de resumo com receitas, despesas e saldo
-- Top categorias de gastos
-- Lista de contas com saldos atualizados
+- Top categorias de gastos com análise visual
+- Lista de contas com saldos atualizados automaticamente
 - Progresso das metas financeiras
-- Últimas transações
+- Últimas transações com filtros inteligentes
+- Sistema de alertas e notificações em tempo real
+- Análise de tendências e previsões
 
-### 💰 Gestão de Transações
-- **Receitas**: Registro de entradas de dinheiro
-- **Despesas**: Controle de gastos
-- **Transferências**: Movimentação entre contas
-- Categorização automática
-- Transações recorrentes
+### 💰 Gestão Completa de Transações
+- **Receitas**: Registro de entradas de dinheiro com categorização
+- **Despesas**: Controle detalhado de gastos
+- **Transferências**: Movimentação entre contas com taxa opcional
+- Categorização automática e personalizável
+- Transações recorrentes com frequências configuráveis
 - Observações e anexos
+- Filtros avançados por período, categoria, conta e valor
 
 ### 🏦 Gestão de Contas
-- Múltiplas contas (corrente, poupança, investimento, etc.)
+- Múltiplas contas (corrente, poupança, investimento, cartão de crédito, etc.)
 - Saldos automáticos baseados nas transações
 - Cores e ícones personalizáveis
 - Histórico de movimentações
+- Atualização automática de saldos
 
-### 🏷️ Categorias
+### 🏷️ Sistema de Categorias
 - Categorias personalizáveis para receitas e despesas
 - Cores e ícones únicos
 - Relatórios por categoria
 - Categorias padrão criadas automaticamente
+- Validação de duplicatas por usuário
 
 ### 🎯 Metas Financeiras
-- Definição de metas de economia
-- Acompanhamento do progresso
-- Alertas de prazo
-- Diferentes tipos de metas
+- Definição de metas de economia com prazos
+- Acompanhamento do progresso em tempo real
+- Alertas de prazo e progresso
+- Diferentes tipos de metas (economia, investimento, pagamento, compra)
+- Cálculo automático de percentual de conclusão
 
-### 📈 Relatórios
-- Relatórios detalhados por período
+### 📈 Relatórios Avançados
+- Relatórios detalhados por período personalizável
 - Filtros por categoria, conta e data
-- Gráficos e estatísticas
-- Exportação de dados
+- Gráficos e estatísticas interativas
+- Exportação de dados em múltiplos formatos
+- Análise de tendências e sazonalidade
 
-### ⚙️ Configurações
-- Preferências pessoais
+### 🔔 Sistema de Notificações
+- Notificações em tempo real no dashboard
+- Alertas de saldo negativo
+- Lembretes de metas próximas do vencimento
+- Alertas de despesas elevadas
+- Sistema de notificações não lidas
+- Histórico completo de notificações
+
+### ⚙️ Configurações Avançadas
+- Preferências pessoais por usuário
 - Tema escuro/claro
-- Configurações de moeda
-- Notificações
+- Configurações de moeda brasileira
+- Notificações por email
+- Backup automático
+- Configurações de formato de data
+
+### 🔄 Sistema de Backup
+- Backup automático dos dados
+- Exportação manual de dados
+- Importação de backups
+- Gerenciamento de arquivos de backup
+- Backup completo do banco de dados
 
 ## 🛠️ Tecnologias Utilizadas
 
 - **Backend**: Django 5.0
 - **Frontend**: Bootstrap 5, FontAwesome 6
-- **Gráficos**: Chart.js
-- **Formulários**: Crispy Forms
-- **Banco de Dados**: SQLite (desenvolvimento)
+- **Gráficos**: Chart.js 3.9.1
+- **Formulários**: Crispy Forms + Bootstrap 5
+- **Banco de Dados**: SQLite (desenvolvimento) / PostgreSQL (produção)
 - **JavaScript**: ES6+ com funcionalidades modernas
+- **CSS**: Custom com variáveis CSS e responsividade
+- **Autenticação**: Sistema nativo Django com validações
 
 ## 📋 Pré-requisitos
 
@@ -120,20 +146,27 @@ SGFP Web - Sistema Gestão Financeira Pessoal/
 ├── core/                          # Aplicação principal
 │   ├── models.py                  # Modelos de dados
 │   ├── views.py                   # Views e lógica de negócio
-│   ├── forms.py                   # Formulários
+│   ├── forms.py                   # Formulários com validações
 │   ├── admin.py                   # Interface administrativa
-│   └── urls.py                    # URLs da aplicação
+│   ├── urls.py                    # URLs da aplicação
+│   ├── templatetags/              # Filtros personalizados
+│   │   └── br_filters.py         # Filtros para formatação brasileira
+│   └── management/                # Comandos de gerenciamento
+│       └── commands/
+│           └── gerar_dados_ficticios.py
 ├── sgfp_web/                      # Configurações do projeto
 │   ├── settings.py                # Configurações Django
 │   └── urls.py                    # URLs principais
 ├── templates/                     # Templates HTML
-│   ├── base.html                  # Template base
+│   ├── base.html                  # Template base com notificações
 │   ├── core/                      # Templates da aplicação
 │   └── registration/              # Templates de autenticação
 ├── static/                        # Arquivos estáticos
 │   └── core/
 │       ├── css/style.css          # Estilos personalizados
 │       └── js/main.js             # JavaScript principal
+├── backup/                        # Diretório de backups
+├── logs/                          # Logs do sistema
 ├── manage.py                      # Script de gerenciamento Django
 └── requirements.txt               # Dependências do projeto
 ```
@@ -157,16 +190,25 @@ SGFP Web - Sistema Gestão Financeira Pessoal/
 - Use o botão "Nova Receita" ou "Nova Despesa" no dashboard
 - Preencha os dados obrigatórios
 - Categorize adequadamente para melhor controle
+- Configure transações recorrentes se necessário
 
 ### 4. Acompanhando Metas
 - Crie metas financeiras em "Metas"
 - Defina valor objetivo e prazo
 - Acompanhe o progresso no dashboard
+- Receba alertas de prazo
 
-### 5. Relatórios
+### 5. Relatórios e Análises
 - Acesse "Relatórios" para análises detalhadas
 - Use os filtros para períodos específicos
+- Visualize gráficos interativos
 - Exporte dados se necessário
+
+### 6. Sistema de Notificações
+- Receba alertas automáticos no dashboard
+- Visualize notificações não lidas
+- Acesse histórico completo de notificações
+- Configure preferências de notificação
 
 ## 🔧 Configurações Avançadas
 
@@ -174,7 +216,7 @@ SGFP Web - Sistema Gestão Financeira Pessoal/
 Edite o arquivo `static/core/css/style.css` para personalizar:
 - Cores do tema
 - Estilos dos componentes
-- Animações
+- Animações e transições
 
 ### Adicionando Novas Funcionalidades
 1. Crie novos modelos em `core/models.py`
@@ -184,12 +226,39 @@ Edite o arquivo `static/core/css/style.css` para personalizar:
 
 ### Backup e Restauração
 ```bash
-# Backup
+# Backup manual
 python manage.py dumpdata > backup.json
 
 # Restauração
 python manage.py loaddata backup.json
+
+# Backup automático via interface web
+# Acesse: Configurações > Backup
 ```
+
+### Geração de Dados Fictícios
+```bash
+# Gerar dados para teste
+python manage.py gerar_dados_ficticios --quantidade 100
+
+# Gerar dados para usuário específico
+python manage.py gerar_dados_ficticios --usuario admin --quantidade 50
+```
+
+## 🔮 Próximas Funcionalidades
+
+### Integração com Google Drive
+- Backup automático para Google Drive
+- Sincronização de configurações
+- Compartilhamento seguro de dados
+- Acesso offline com sincronização
+
+### Melhorias Planejadas
+- App mobile nativo
+- Integração com bancos brasileiros
+- Sistema de orçamentos
+- Relatórios fiscais
+- Integração com sistemas de pagamento
 
 ## 🐛 Solução de Problemas
 
@@ -214,25 +283,40 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+### Problemas de Formatação
+- Verifique se o filtro `br_currency` está funcionando
+- Confirme se as configurações de locale estão corretas
+- Verifique se o arquivo `br_filters.py` está sendo carregado
+
 ## 📊 Funcionalidades Técnicas
 
 ### Segurança
-- Autenticação de usuários
-- Proteção CSRF
-- Validação de formulários
+- Autenticação de usuários com validação
+- Proteção CSRF em todos os formulários
+- Validação de formulários no frontend e backend
 - Isolamento de dados por usuário
+- Validação de permissões em todas as views
 
 ### Performance
-- Queries otimizadas
+- Queries otimizadas com select_related
 - Cache de consultas frequentes
 - Paginação de resultados
 - Lazy loading de componentes
+- Otimização de imagens e assets
 
 ### Responsividade
 - Design mobile-first
 - Bootstrap 5 responsivo
 - Componentes adaptáveis
 - Interface touch-friendly
+- Sidebar colapsível em dispositivos móveis
+
+### Acessibilidade
+- Navegação por teclado
+- Labels semânticos
+- Contraste adequado
+- Estrutura HTML semântica
+- Suporte a leitores de tela
 
 ## 🤝 Contribuição
 
