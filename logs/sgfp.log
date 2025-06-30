@@ -5444,3 +5444,64 @@ WARNING 2025-06-29 23:19:44,206 log 18628 24092 Not Found: /core/api/notificacoe
 WARNING 2025-06-29 23:19:44,210 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
 WARNING 2025-06-29 23:19:44,210 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
 WARNING 2025-06-29 23:19:44,210 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:20:14,198 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:20:14,200 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:20:14,201 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:20:14,201 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:20:44,205 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:20:44,207 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:20:44,208 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:20:44,208 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:21:14,207 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:21:14,209 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:21:14,210 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:21:14,210 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:21:44,200 log 18628 7264 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:21:44,202 log 18628 24092 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:21:44,203 basehttp 18628 7264 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:21:44,203 basehttp 18628 24092 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:22:14,199 log 18628 7264 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:22:14,202 log 18628 24092 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:22:14,202 basehttp 18628 24092 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:22:14,202 basehttp 18628 7264 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:22:44,839 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:22:44,841 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:22:44,842 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:22:44,842 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:23:14,835 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:23:14,837 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:23:14,838 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:23:14,838 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:24:01,832 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:24:01,834 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:24:01,835 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:24:01,835 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:25:01,835 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:01,838 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:01,838 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:25:01,839 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:25:38,255 log 18628 7264 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:38,257 log 18628 24092 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:38,258 basehttp 18628 7264 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:25:38,258 basehttp 18628 24092 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+INFO 2025-06-29 23:25:39,415 basehttp 18628 24092 "GET / HTTP/1.1" 200 53551
+WARNING 2025-06-29 23:25:39,487 log 18628 24092 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:39,490 log 18628 7264 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:39,490 basehttp 18628 24092 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:25:39,490 basehttp 18628 7264 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+INFO 2025-06-29 23:25:41,473 basehttp 18628 24092 "GET /configuracoes/ HTTP/1.1" 200 32845
+WARNING 2025-06-29 23:25:41,536 log 18628 24092 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:41,538 log 18628 7264 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:41,538 basehttp 18628 24092 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:25:41,538 basehttp 18628 7264 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+INFO 2025-06-29 23:25:44,377 basehttp 18628 7264 "POST /configuracoes/ HTTP/1.1" 302 0
+INFO 2025-06-29 23:25:44,706 basehttp 18628 7264 "GET /configuracoes/ HTTP/1.1" 200 33295
+WARNING 2025-06-29 23:25:44,751 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:44,753 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
+WARNING 2025-06-29 23:25:44,755 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:44,756 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+INFO 2025-06-29 23:25:48,681 basehttp 18628 7264 "GET / HTTP/1.1" 200 53561
+WARNING 2025-06-29 23:25:48,752 log 18628 24092 Not Found: /core/api/notificacoes/count/
+WARNING 2025-06-29 23:25:48,755 log 18628 7264 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-06-29 23:25:48,755 basehttp 18628 24092 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 12538
+WARNING 2025-06-29 23:25:48,755 basehttp 18628 7264 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 12547
