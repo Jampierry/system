@@ -19628,3 +19628,11 @@ WARNING 2025-07-01 22:27:04,310 log 70256 73916 Not Found: /core/api/notificacoe
 WARNING 2025-07-01 22:27:04,310 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
 WARNING 2025-07-01 22:27:04,313 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
 WARNING 2025-07-01 22:27:04,314 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:27:34,310 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:27:34,313 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:27:34,314 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:27:34,314 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:28:04,311 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:28:04,312 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:28:04,315 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:28:04,315 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
