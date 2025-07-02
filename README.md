@@ -31,6 +31,20 @@ Um sistema web completo para gestão financeira pessoal desenvolvido com Django,
 - Histórico de movimentações
 - Atualização automática de saldos
 
+### 💳 Central de Cartões de Crédito
+- Dashboard especializado para cartões de crédito
+- Visualização de limites, utilização e disponibilidade
+- Gráficos de evolução temporal dos gastos
+- Gráfico de pizza com distribuição de gastos por cartão
+- Painel de faturas organizadas por status (em aberto, pagas, vencidas, futuras)
+- Gráfico de barras com evolução das faturas (12 meses)
+- Filtros de data globais para toda a página
+- Navegação entre meses nos gráficos
+- Associação automática de despesas às faturas corretas
+- Ações de pagar, reabrir e ajustar faturas
+- Criação manual de faturas
+- Seleção/deseleção interativa de cartões e faturas
+
 ### 🏷️ Sistema de Categorias
 - Categorias personalizáveis para receitas e despesas
 - Cores e ícones únicos
@@ -210,6 +224,16 @@ SGFP Web - Sistema Gestão Financeira Pessoal/
 - Acesse histórico completo de notificações
 - Configure preferências de notificação
 
+### 7. Central de Cartões de Crédito
+- Acesse "Central de Cartões" no menu principal
+- Visualize todos os seus cartões de crédito
+- Clique em um cartão para filtrar toda a página
+- Acompanhe limites, utilização e disponibilidade
+- Gerencie faturas (pagar, reabrir, ajustar)
+- Use filtros de data para análises específicas
+- Navegue pelos gráficos com as setas de navegação
+- Crie novas faturas manualmente quando necessário
+
 ## 🔧 Configurações Avançadas
 
 ### Personalização de Cores
@@ -243,6 +267,9 @@ python manage.py gerar_dados_ficticios --quantidade 100
 
 # Gerar dados para usuário específico
 python manage.py gerar_dados_ficticios --usuario admin --quantidade 50
+
+# Gerar dados incluindo cartões e faturas
+python manage.py gerar_dados_ficticios --quantidade 30
 ```
 
 ## 🔮 Próximas Funcionalidades
@@ -259,6 +286,9 @@ python manage.py gerar_dados_ficticios --usuario admin --quantidade 50
 - Sistema de orçamentos
 - Relatórios fiscais
 - Integração com sistemas de pagamento
+- Dashboard de investimentos
+- Relatórios de gastos por categoria de cartão
+- Sistema de alertas para limites de cartão
 
 ## 🐛 Solução de Problemas
 

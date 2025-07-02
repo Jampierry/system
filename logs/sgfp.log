@@ -19636,3 +19636,282 @@ WARNING 2025-07-01 22:28:04,311 log 70256 49428 Not Found: /core/api/notificacoe
 WARNING 2025-07-01 22:28:04,312 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
 WARNING 2025-07-01 22:28:04,315 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
 WARNING 2025-07-01 22:28:04,315 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:28:34,307 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:28:34,310 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:28:34,311 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:28:34,311 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:29:04,307 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:29:04,307 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:29:04,311 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:29:04,311 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:29:34,314 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:29:34,317 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:29:34,317 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:29:34,318 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:30:04,321 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:30:04,324 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:30:04,325 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:30:04,326 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:30:35,078 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:30:35,079 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:30:35,081 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:30:35,082 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:31:05,085 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:31:05,089 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:31:05,089 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:31:05,089 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:32:06,073 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:32:06,074 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:32:06,077 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:32:06,077 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:33:04,671 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:04,671 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:33:04,673 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:04,674 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:33:14,546 basehttp 70256 73916 "GET / HTTP/1.1" 200 64690
+INFO 2025-07-01 22:33:14,584 basehttp 70256 73916 "GET /static/imagens/cartoes/mastercard-logo-3-2.png HTTP/1.1" 304 0
+INFO 2025-07-01 22:33:14,585 basehttp 70256 49428 "GET /static/imagens/cartoes/visa-logo-2-1.png HTTP/1.1" 304 0
+WARNING 2025-07-01 22:33:14,636 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:14,637 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:33:14,640 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:14,641 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:33:19,689 basehttp 70256 73916 "GET /cartao/9f1141b0-70f1-43bc-9904-8dbceec71980/ HTTP/1.1" 200 31447
+WARNING 2025-07-01 22:33:19,752 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:19,755 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:19,756 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:33:19,756 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:33:25,829 basehttp 70256 49428 "GET / HTTP/1.1" 200 64690
+WARNING 2025-07-01 22:33:25,936 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:25,939 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:25,939 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:33:25,940 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:33:28,988 basehttp 70256 73916 "GET /cartoes-dashboard/ HTTP/1.1" 200 42404
+WARNING 2025-07-01 22:33:29,072 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:29,075 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:29,076 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:33:29,076 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+INFO 2025-07-01 22:33:54,576 basehttp 70256 73916 "GET /cartoes-dashboard/?data_inicio=2025-01-01&data_fim=2025-09-30 HTTP/1.1" 200 42522
+WARNING 2025-07-01 22:33:54,630 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:33:54,633 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:33:54,634 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:33:54,634 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:34:16,403 basehttp 70256 73916 "GET /cartoes-dashboard/?cartao=9f1141b0-70f1-43bc-9904-8dbceec71980 HTTP/1.1" 200 50862
+WARNING 2025-07-01 22:34:16,461 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:34:16,463 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:34:16,466 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:34:16,467 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+INFO 2025-07-01 22:34:33,185 basehttp 70256 73916 "GET / HTTP/1.1" 200 64690
+WARNING 2025-07-01 22:34:33,311 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:34:33,314 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:34:33,315 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:34:33,315 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:34:35,433 basehttp 70256 49428 "GET /configuracoes/ HTTP/1.1" 200 40368
+WARNING 2025-07-01 22:34:35,501 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:34:35,501 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:34:35,511 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:34:35,511 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:34:54,561 basehttp 70256 73916 "POST /configuracoes/ HTTP/1.1" 302 0
+INFO 2025-07-01 22:34:54,858 basehttp 70256 73916 "GET /configuracoes/ HTTP/1.1" 200 40802
+WARNING 2025-07-01 22:34:54,895 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:34:54,896 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:34:54,903 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:34:54,904 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:34:56,755 basehttp 70256 49428 "GET / HTTP/1.1" 200 64690
+WARNING 2025-07-01 22:34:56,847 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:34:56,849 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:34:56,853 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:34:56,854 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+INFO 2025-07-01 22:35:02,540 basehttp 70256 49428 "GET /cartoes-dashboard/ HTTP/1.1" 200 42404
+WARNING 2025-07-01 22:35:02,598 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:35:02,604 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:35:02,604 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:35:02,605 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:35:15,868 basehttp 70256 73916 "GET /configuracoes/ HTTP/1.1" 200 40368
+WARNING 2025-07-01 22:35:15,938 log 70256 73916 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:35:15,939 basehttp 70256 73916 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:35:15,945 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:35:15,946 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:35:21,555 basehttp 70256 49428 "POST /excluir_dados_ficticios/ HTTP/1.1" 302 0
+INFO 2025-07-01 22:35:21,884 basehttp 70256 49428 "GET /configuracoes/ HTTP/1.1" 200 40811
+WARNING 2025-07-01 22:35:21,944 log 70256 73916 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:35:21,947 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:35:21,947 basehttp 70256 73916 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:35:21,948 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:35:51,931 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:35:51,934 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:35:51,934 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:35:51,935 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:36:21,926 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:36:21,926 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:36:21,929 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:36:21,930 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+ERROR 2025-07-01 22:36:48,055 log 70256 68680 Internal Server Error: /
+Traceback (most recent call last):
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\sessions\backends\base.py", line 187, in _get_session
+    return self._session_cache
+           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'SessionStore' object has no attribute '_session_cache'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\sqlite3\base.py", line 329, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\decorators.py", line 22, in _wrapper_view
+    if test_func(request.user):
+       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\decorators.py", line 51, in <lambda>
+    lambda u: u.is_authenticated,
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\utils\functional.py", line 251, in inner
+    self._setup()
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\utils\functional.py", line 404, in _setup
+    self._wrapped = self._setupfunc()
+                    ^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\middleware.py", line 33, in <lambda>
+    request.user = SimpleLazyObject(lambda: get_user(request))
+                                            ^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\middleware.py", line 13, in get_user
+    request._cached_user = auth.get_user(request)
+                           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\__init__.py", line 209, in get_user
+    user_id = _get_user_session_key(request)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\auth\__init__.py", line 62, in _get_user_session_key
+    return get_user_model()._meta.pk.to_python(request.session[SESSION_KEY])
+                                               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\sessions\backends\base.py", line 53, in __getitem__
+    return self._session[key]
+           ^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\sessions\backends\base.py", line 192, in _get_session
+    self._session_cache = self.load()
+                          ^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\sessions\backends\db.py", line 42, in load
+    s = self._get_session_from_db()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\contrib\sessions\backends\db.py", line 32, in _get_session_from_db
+    return self.model.objects.get(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\query.py", line 645, in get
+    num = len(clone)
+          ^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\query.py", line 382, in __len__
+    self._fetch_all()
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\query.py", line 1928, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\models\sql\compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jampi\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\db\backends\sqlite3\base.py", line 329, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database is locked
+ERROR 2025-07-01 22:36:48,063 basehttp 70256 68680 "GET / HTTP/1.1" 500 191336
+INFO 2025-07-01 22:36:48,398 basehttp 70256 73916 - Broken pipe from ('127.0.0.1', 55803)
+WARNING 2025-07-01 22:36:53,134 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:36:53,137 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:36:53,138 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:36:53,138 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:36:57,379 basehttp 70256 49428 "GET / HTTP/1.1" 200 66408
+WARNING 2025-07-01 22:36:57,601 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:36:57,604 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:36:57,605 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:36:57,605 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:37:01,869 basehttp 70256 49428 "GET /receitas/ HTTP/1.1" 200 74457
+WARNING 2025-07-01 22:37:01,933 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:01,936 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:01,941 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:01,942 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:37:03,127 basehttp 70256 68680 "GET / HTTP/1.1" 200 65974
+WARNING 2025-07-01 22:37:03,217 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:03,220 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:03,221 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:03,221 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:37:07,647 basehttp 70256 49428 "GET /cartoes-dashboard/ HTTP/1.1" 200 45767
+WARNING 2025-07-01 22:37:07,711 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:07,712 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:07,714 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:07,715 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:37:14,830 basehttp 70256 68680 "GET /cartoes-dashboard/?cartao=aa92efd5-3817-49bb-a3a1-2b1d198d8990 HTTP/1.1" 200 60780
+WARNING 2025-07-01 22:37:14,885 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:14,887 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:14,891 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:14,892 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+INFO 2025-07-01 22:37:21,909 basehttp 70256 49428 "GET / HTTP/1.1" 200 65974
+WARNING 2025-07-01 22:37:22,006 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:22,009 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:22,009 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:22,010 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:37:52,008 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:37:52,011 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:37:52,012 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:37:52,012 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:38:22,015 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:38:22,015 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:38:22,020 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:38:22,020 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:38:52,014 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:38:52,016 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:38:52,017 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:38:52,017 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:39:22,024 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:39:22,027 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:39:22,027 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:39:22,028 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:39:52,020 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:39:52,023 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:39:52,023 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:39:52,024 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:40:22,017 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:40:22,020 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:40:22,021 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:40:22,021 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:40:52,015 log 70256 68680 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:40:52,017 log 70256 49428 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:40:52,018 basehttp 70256 68680 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:40:52,018 basehttp 70256 49428 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:41:22,020 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:41:22,023 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:41:22,023 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
+WARNING 2025-07-01 22:41:22,023 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:41:52,016 log 70256 49428 Not Found: /core/api/notificacoes/recentes/
+WARNING 2025-07-01 22:41:52,019 log 70256 68680 Not Found: /core/api/notificacoes/count/
+WARNING 2025-07-01 22:41:52,019 basehttp 70256 49428 "GET /core/api/notificacoes/recentes/ HTTP/1.1" 404 14151
+WARNING 2025-07-01 22:41:52,020 basehttp 70256 68680 "GET /core/api/notificacoes/count/ HTTP/1.1" 404 14142
