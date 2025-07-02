@@ -64,51 +64,32 @@
                 <div class="row">
                     <div class="col-md-3">
                         <label for="periodo" class="form-label">Período</label>
-                        <select class="form-select" name="periodo" id="periodo">
-                            <option value="mes_atual" {% if periodo == 'mes_atual' %}selected{% endif %}>Mês Atual</option>
-                            <option value="mes_anterior" {% if periodo == 'mes_anterior' %}selected{% endif %}>Mês Anterior</option>
-                            <option value="ultimos_3_meses" {% if periodo == 'ultimos_3_meses' %}selected{% endif %}>Últimos 3 Meses</option>
-                            <option value="ultimos_6_meses" {% if periodo == 'ultimos_6_meses' %}selected{% endif %}>Últimos 6 Meses</option>
-                            <option value="ano_atual" {% if periodo == 'ano_atual' %}selected{% endif %}>Ano Atual</option>
-                            <option value="personalizado" {% if periodo == 'personalizado' %}selected{% endif %}>Personalizado</option>
-                        </select>
+                        {{ form.periodo }}
                     </div>
                     <div class="col-md-3">
                         <label for="data_inicio" class="form-label">Data Início</label>
-                        <input type="date" class="form-control" name="data_inicio" id="data_inicio" 
-                               value="{{ data_inicio|default:'' }}">
+                        {{ form.data_inicio }}
                     </div>
                     <div class="col-md-3">
                         <label for="data_fim" class="form-label">Data Fim</label>
-                        <input type="date" class="form-control" name="data_fim" id="data_fim" 
-                               value="{{ data_fim|default:'' }}">
+                        {{ form.data_fim }}
                     </div>
                     <div class="col-md-3">
                         <label for="categoria" class="form-label">Categoria</label>
-                        <select class="form-select" name="categoria" id="categoria">
-                            <option value="">Todas as Categorias</option>
-                            {% for cat in categorias %}
-                            <option value="{{ cat.id }}" {% if categoria == cat.id %}selected{% endif %}>{{ cat.nome }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.categoria }}
                     </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-3">
                         <label for="conta" class="form-label">Conta</label>
-                        <select class="form-select" name="conta" id="conta">
-                            <option value="">Todas as Contas</option>
-                            {% for c in contas %}
-                            <option value="{{ c.id }}" {% if conta == c.id %}selected{% endif %}>{{ c.nome }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.conta }}
                     </div>
                     <div class="col-md-3">
                         <label for="tipo" class="form-label">Tipo</label>
                         <select class="form-select" name="tipo" id="tipo">
                             <option value="">Todos os Tipos</option>
-                            <option value="receita" {% if tipo == 'receita' %}selected{% endif %}>Receitas</option>
-                            <option value="despesa" {% if tipo == 'despesa' %}selected{% endif %}>Despesas</option>
+                            <option value="receita">Receitas</option>
+                            <option value="despesa">Despesas</option>
                         </select>
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
@@ -434,7 +415,11 @@ new Chart(ctxCategorias, {
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                position: 'bottom'
+                position: 'bottom',
+                labels: {
+                    padding: 10,
+                    usePointStyle: true
+                }
             },
             tooltip: {
                 callbacks: {
@@ -513,16 +498,27 @@ function imprimirRelatorio() {
 }
 
 // Controle de filtros
-document.getElementById('periodo').addEventListener('change', function() {
-    const dataInicio = document.getElementById('data_inicio');
-    const dataFim = document.getElementById('data_fim');
+document.addEventListener('DOMContentLoaded', function() {
+    const periodoSelect = document.getElementById('id_periodo');
+    const dataInicio = document.getElementById('id_data_inicio');
+    const dataFim = document.getElementById('id_data_fim');
     
-    if (this.value !== 'personalizado') {
-        dataInicio.disabled = true;
-        dataFim.disabled = true;
-    } else {
-        dataInicio.disabled = false;
-        dataFim.disabled = false;
+    if (periodoSelect) {
+        periodoSelect.addEventListener('change', function() {
+            if (this.value !== 'custom') {
+                dataInicio.disabled = true;
+                dataFim.disabled = true;
+            } else {
+                dataInicio.disabled = false;
+                dataFim.disabled = false;
+            }
+        });
+        
+        // Executar na carga inicial
+        if (periodoSelect.value !== 'custom') {
+            dataInicio.disabled = true;
+            dataFim.disabled = true;
+        }
     }
 });
 </script>

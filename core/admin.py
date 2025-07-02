@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao
+from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao, Fatura
 from django.utils import timezone
 
 @admin.register(Categoria)
@@ -171,24 +171,21 @@ class MetaAdmin(admin.ModelAdmin):
 
 @admin.register(Configuracao)
 class ConfiguracaoAdmin(admin.ModelAdmin):
-    list_display = ['usuario', 'moeda_padrao', 'tema_escuro', 'notificacoes_email', 'backup_automatico']
-    list_filter = ['tema_escuro', 'notificacoes_email', 'backup_automatico', 'data_criacao']
+    list_display = ['usuario', 'dashboard_tipo', 'dashboard_layout', 'dashboard_tema', 'dashboard_refresh']
+    list_filter = ['dashboard_tipo', 'dashboard_layout', 'dashboard_tema', 'dashboard_refresh', 'dashboard_animations', 'dashboard_dragdrop']
     search_fields = ['usuario__username', 'usuario__email']
     readonly_fields = ['data_criacao', 'data_atualizacao']
     fieldsets = (
         ('Usuário', {
             'fields': ('usuario',)
         }),
-        ('Preferências', {
-            'fields': ('moeda_padrao', 'formato_data', 'tema_escuro')
+        ('Dashboard', {
+            'fields': ('dashboard_tipo', 'dashboard_layout', 'dashboard_tema', 'dashboard_refresh', 'dashboard_animations', 'dashboard_dragdrop')
         }),
-        ('Notificações', {
-            'fields': ('notificacoes_email',)
+        ('Configurações Gerais', {
+            'fields': ('moeda_padrao', 'formato_data', 'tema_escuro', 'notificacoes_email', 'backup_automatico')
         }),
-        ('Backup', {
-            'fields': ('backup_automatico',)
-        }),
-        ('Datas', {
+        ('Informações do Sistema', {
             'fields': ('data_criacao', 'data_atualizacao'),
             'classes': ('collapse',)
         }),
@@ -213,3 +210,9 @@ class NotificacaoAdmin(admin.ModelAdmin):
         queryset.update(lida=False, data_leitura=None)
         self.message_user(request, f'{queryset.count()} notificações marcadas como não lidas.')
     marcar_como_nao_lidas.short_description = 'Marcar como não lidas'
+
+@admin.register(Fatura)
+class FaturaAdmin(admin.ModelAdmin):
+    list_display = ('cartao', 'mes', 'ano', 'valor', 'vencimento', 'paga', 'ajustada', 'data_pagamento')
+    list_filter = ('cartao', 'paga', 'ajustada', 'ano', 'mes')
+    search_fields = ('cartao__nome',)

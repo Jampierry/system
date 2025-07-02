@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load br_filters %}
+{% block title %}Central de Cartões{% endblock %}
+{% block content %}
+<div class="container-fluid" style="padding: 10px;">
+    <h2 class="mb-3"><i class="fas fa-credit-card me-2"></i>Central de Cartões</h2>
+    <form method="get" class="row g-2 align-items-end mb-2" style="max-width: 600px;">
+        <div class="col-auto">
+            <label for="data_inicio" class="form-label mb-0">Data inicial</label>
+            <input type="date" class="form-control form-control-sm" id="data_inicio" name="data_inicio" value="{{ request.GET.data_inicio|default:'' }}">
+        </div>
+        <div class="col-auto">
+            <label for="data_fim" class="form-label mb-0">Data final</label>
+            <input type="date" class="form-control form-control-sm" id="data_fim" name="data_fim" value="{{ request.GET.data_fim|default:'' }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            {% if request.GET.data_inicio or request.GET.data_fim %}
+                <a href="?" class="btn btn-outline-secondary btn-sm ms-1">Limpar</a>
+            {% endif %}
+        </div>
+    </form>
+    <div class="row g-2 align-items-stretch mb-2" style="min-height:220px;">
+        <div class="col-lg-3 col-md-12 mb-2 mb-lg-0">
+            <div class="card shadow h-100 p-2 d-flex flex-column justify-content-center" style="min-height:220px;">
+                <div class="card-body p-2">
+                    <h6 class="text-muted mb-1" style="font-size:0.95em;">Limite Total</h6>
+                    <h4 class="text-primary mb-2" style="font-size:1.3em;">{{ total_limite|br_currency }}</h4>
+                    <h6 class="text-muted mt-2 mb-1" style="font-size:0.95em;">Utilizado</h6>
+                    <h4 class="text-danger mb-2" style="font-size:1.3em;">{{ total_utilizado|br_currency }}</h4>
+                    <h6 class="text-muted mt-2 mb-1" style="font-size:0.95em;">Disponível</h6>
+                    <h4 class="text-success mb-0" style="font-size:1.3em;">{{ total_disponivel|br_currency }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 col-md-6 mb-2 mb-lg-0">
+            <div class="card shadow h-100 p-2 d-flex flex-column justify-content-center" style="min-height:220px;">
+                <div class="card-body p-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <h6 class="text-muted mb-0" style="font-size:0.95em;">Evolução Temporal dos Gastos</h6>
+                        <div>
+                            <button id="linhaPrev" class="btn btn-sm btn-light me-1" title="Meses anteriores"><i class="fas fa-chevron-left"></i></button>
+                            <button id="linhaNext" class="btn btn-sm btn-light" title="Meses futuros"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <canvas id="graficoLinhaCartoes" style="height: 120px; max-height: 160px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow h-100 p-2 d-flex flex-row align-items-center" style="min-height:220px;">
+                <div class="card-body p-2" style="width: 60%;">
+                    <h6 class="text-muted mb-1" style="font-size:0.95em;">Evolução de Gastos com Cartões</h6>
+                    <canvas id="graficoGastosCartoes" style="height: 120px; max-height: 160px;"></canvas>
+                </div>
+                <div class="p-2" style="width: 40%; min-width: 90px;">
+                    <div id="legendaGastosCartoes" class="small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Script para o gráfico de gastos dos cartões #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chartGastosCartoes = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            const labelsGastos = {{ labels|safe }};
+            const gastos = {{ gastos|safe }};
+            const ctxGastos = document.getElementById('graficoGastosCartoes');
+            const legendaDiv = document.getElementById('legendaGastosCartoes');
+            const cores = [
+                '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1',
+                '#fd7e14', '#20c997', '#e83e8c', '#6c757d', '#17a2b8'
+            ];
+            
+            if (ctxGastos && labelsGastos && labelsGastos.length > 0) {
+                if (chartGastosCartoes) {
+                    chartGastosCartoes.destroy();
+                }
+                chartGastosCartoes = new Chart(ctxGastos.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsGastos,
+                        datasets: [{
+                            data: gastos,
+                            backgroundColor: cores,
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentual = ((context.parsed / total) * 100).toFixed(1);
+                                        return context.label + ': R$ ' + context.parsed.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (' + percentual + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                if (legendaDiv) {
+                    legendaDiv.innerHTML = labelsGastos.map((label, i) =>
+                        `<span style="display:inline-block;width:14px;height:14px;background:${cores[i]};border-radius:3px;margin-right:6px;"></span>${label}<br>`
+                    ).join('');
+                }
+            }
+            const mesesPtBr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const ctxLinha = document.getElementById('graficoLinhaCartoes');
+            const allLinhaLabels = {{ evolucao_labels|safe }};
+            const allLinhaValores = {{ evolucao_valores|safe }};
+            if (ctxLinha && allLinhaLabels && allLinhaLabels.length > 0) {
+                let linhaStartIdx = Math.max(0, allLinhaLabels.length - 6 - 3);
+                let linhaEndIdx = Math.min(allLinhaLabels.length, linhaStartIdx + 9);
+                function renderLinhaChart() {
+                    const labels = allLinhaLabels.slice(linhaStartIdx, linhaEndIdx);
+                    const valores = allLinhaValores.slice(linhaStartIdx, linhaEndIdx);
+                    if (window.linhaChart) window.linhaChart.destroy();
+                    window.linhaChart = new Chart(ctxLinha.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Gastos Mensais',
+                                data: valores,
+                                borderColor: '#007bff',
+                                backgroundColor: 'rgba(0,123,255,0.1)',
+                                tension: 0.3,
+                                pointRadius: 3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, grid: { color: '#eee' } }
+                            }
+                        }
+                    });
+                }
+                renderLinhaChart();
+                document.getElementById('linhaPrev').onclick = function() {
+                    if (linhaStartIdx > 0) {
+                        linhaStartIdx--;
+                        linhaEndIdx--;
+                        renderLinhaChart();
+                    }
+                };
+                document.getElementById('linhaNext').onclick = function() {
+                    if (linhaEndIdx < allLinhaLabels.length) {
+                        linhaStartIdx++;
+                        linhaEndIdx++;
+                        renderLinhaChart();
+                    }
+                };
+            }
+        });
+    </script>
+    <div class="row mb-3" id="cartoes-lista">
+        {% for cartao in cartoes %}
+            <div class="col-12 col-sm-4 col-md-4 col-lg-3 mb-2 d-flex justify-content-center">
+                {% if cartao_selecionado and cartao_selecionado.pk == cartao.pk %}
+                    <a href="?" style="text-decoration:none;">
+                {% else %}
+                    <a href="?cartao={{ cartao.pk }}" style="text-decoration:none;">
+                {% endif %}
+                    <div class="cartao-card{% if cartao_selecionado and cartao_selecionado.pk == cartao.pk %} cartao-card-selecionado{% endif %}" data-cartao-id="{{ cartao.pk }}" style="cursor:pointer; transition:box-shadow 0.2s; display:inline-block; width:auto;">
+                        {% include 'core/_cartao_credito_card.html' with cartao=cartao limite_total=cartao.limite_total limite_utilizado=cartao.limite_utilizado limite_disponivel=cartao.limite_disponivel user=user %}
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Painel de Faturas #}
+    {% if cartao_selecionado %}
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Faturas do Cartão {{ cartao_selecionado.nome }}</h5>
+            </div>
+            <div class="card-body">
+                {% if faturas and faturas|length > 0 %}
+                    {# Faturas em aberto (mês atual) #}
+                    {% if faturas_em_aberto %}
+                        <div class="mb-4">
+                            <h6 class="text-warning fw-bold mb-3">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Faturas em Aberto
+                            </h6>
+                            <div class="d-flex flex-nowrap overflow-auto mb-3" style="gap: 10px;">
+                                {% for fatura in faturas_em_aberto %}
+                                    <div class="fatura-card border rounded p-2 text-center bg-warning bg-opacity-10" style="min-width:150px; max-width:170px; font-size:0.95em; box-shadow:0 2px 8px #0001; cursor:pointer; transition:box-shadow 0.2s;" data-fatura-id="{{ fatura.id }}">
+                                        <div class="fw-bold text-primary">{{ fatura.get_mes_display }}/{{ fatura.ano }}</div>
+                                        <div class="small text-muted mb-1">FATURA DE {{ fatura.get_mes_display|upper }}</div>
+                                        <div class="fs-5 fw-bold mb-1" style="color:#007bff;">{{ fatura.valor_calculado|br_currency }}</div>
+                                        <div class="mb-1">Venc: {{ fatura.vencimento|date:'d/m/Y' }}</div>
+                                        <div class="badge bg-warning text-dark mb-2">EM ABERTO</div>
+                                        <div class="d-grid gap-1">
+                                            <button class="btn btn-success btn-sm">Pagar</button>
+                                            <button class="btn btn-outline-primary btn-sm">Ajustar</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Faturas vencidas #}
+                    {% if faturas_vencidas %}
+                        <div class="mb-4">
+                            <h6 class="text-danger fw-bold mb-3">
+                                <i class="fas fa-times-circle me-2"></i>Faturas Vencidas
+                            </h6>
+                            <div class="d-flex flex-nowrap overflow-auto mb-3" style="gap: 16px;">
+                                {% for fatura in faturas_vencidas %}
+                                    <div class="border rounded p-3 text-center bg-danger bg-opacity-10" style="min-width:200px; box-shadow:0 2px 8px #0001;">
+                                        <div class="fw-bold text-primary">{{ fatura.get_mes_display }}/{{ fatura.ano }}</div>
+                                        <div class="small text-muted mb-1">FATURA DE {{ fatura.get_mes_display|upper }}</div>
+                                        <div class="fs-4 fw-bold mb-1" style="color:#007bff;">{{ fatura.valor_calculado|br_currency }}</div>
+                                        <div class="mb-1">Venc: {{ fatura.vencimento|date:'d/m/Y' }}</div>
+                                        <div class="badge bg-danger text-white mb-2">VENCIDA</div>
+                                        <div class="d-grid gap-1">
+                                            <a href="{% url 'core:pagar_fatura' fatura.id %}" class="btn btn-success btn-sm">Pagar</a>
+                                            <a href="{% url 'core:ajustar_fatura' fatura.id %}" class="btn btn-outline-primary btn-sm">Ajustar</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Próximas faturas #}
+                    {% if faturas_futuras %}
+                        <div class="mb-4">
+                            <h6 class="text-info fw-bold mb-3">
+                                <i class="fas fa-calendar-alt me-2"></i>Próximas Faturas
+                            </h6>
+                            <div class="d-flex flex-nowrap overflow-auto mb-3" style="gap: 16px;">
+                                {% for fatura in faturas_futuras %}
+                                    <div class="border rounded p-3 text-center bg-info bg-opacity-10" style="min-width:200px; box-shadow:0 2px 8px #0001;">
+                                        <div class="fw-bold text-primary">{{ fatura.get_mes_display }}/{{ fatura.ano }}</div>
+                                        <div class="small text-muted mb-1">FATURA DE {{ fatura.get_mes_display|upper }}</div>
+                                        <div class="fs-4 fw-bold mb-1" style="color:#007bff;">{{ fatura.valor_calculado|br_currency }}</div>
+                                        <div class="mb-1">Venc: {{ fatura.vencimento|date:'d/m/Y' }}</div>
+                                        <div class="badge bg-info text-white mb-2">FUTURA</div>
+                                        <div class="d-grid gap-1">
+                                            <a href="{% url 'core:ajustar_fatura' fatura.id %}" class="btn btn-outline-primary btn-sm">Ajustar</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Faturas pagas #}
+                    {% if faturas_pagas %}
+                        <div class="mb-4">
+                            <h6 class="text-success fw-bold mb-3">
+                                <i class="fas fa-check-circle me-2"></i>Faturas Pagas
+                            </h6>
+                            <div class="d-flex flex-nowrap overflow-auto mb-3" style="gap: 16px;">
+                                {% for fatura in faturas_pagas %}
+                                    <div class="border rounded p-3 text-center bg-success bg-opacity-10" style="min-width:200px; box-shadow:0 2px 8px #0001;">
+                                        <div class="fw-bold text-primary">{{ fatura.get_mes_display }}/{{ fatura.ano }}</div>
+                                        <div class="small text-muted mb-1">FATURA DE {{ fatura.get_mes_display|upper }}</div>
+                                        <div class="fs-4 fw-bold mb-1" style="color:#007bff;">{{ fatura.valor_calculado|br_currency }}</div>
+                                        <div class="mb-1">Venc: {{ fatura.vencimento|date:'d/m/Y' }}</div>
+                                        <div class="mb-1">Pago em: {{ fatura.data_pagamento|date:'d/m/Y' }}</div>
+                                        <div class="badge bg-success text-white mb-2">PAGA</div>
+                                        <div class="d-grid gap-1">
+                                            <a href="{% url 'core:reabrir_fatura' fatura.id %}" class="btn btn-warning btn-sm">Reabrir</a>
+                                            <a href="{% url 'core:ajustar_fatura' fatura.id %}" class="btn btn-outline-primary btn-sm">Ajustar</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
+                        <p>Nenhuma fatura encontrada para este cartão.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Despesas de Cartões</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if despesas_cartoes %}
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Cartão</th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for despesa in despesas_cartoes %}
+                    <tr>
+                        <td>{{ despesa.cartao.nome }}</td>
+                        <td>{{ despesa.data|date:'d/m/Y' }}</td>
+                        <td>{{ despesa.descricao }}</td>
+                        <td>{{ despesa.categoria.nome }}</td>
+                        <td>{{ despesa.valor|br_currency }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="p-4 text-center text-muted">Nenhuma despesa lançada em cartões.</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mb-4">
+        <a href="{% url 'core:cartao_credito_create' %}" class="btn btn-success"><i class="fas fa-plus me-1"></i>Novo Cartão</a>
+        <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-outline-primary ms-2"><i class="fas fa-list me-1"></i>Gerenciar Cartões</a>
+    </div>
+
+    {% if cartao_selecionado %}
+        <div class="mb-3 text-end">
+            <a href="{% url 'core:nova_fatura' %}?cartao={{ cartao_selecionado.pk }}" class="btn btn-success">
+                <i class="fas fa-plus me-1"></i>Nova Fatura
+            </a>
+        </div>
+    {% endif %}
+
+    {% if cartao_selecionado %}
+        <div class="card shadow mb-3" style="max-width:100%;">
+            <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between p-2">
+                <span style="font-size:1.1em;"><i class="fas fa-chart-bar me-2"></i>Evolução das Faturas</span>
+                <div>
+                    <button id="faturaPrev" class="btn btn-sm btn-light me-1" title="Faturas anteriores"><i class="fas fa-chevron-left"></i></button>
+                    <button id="faturaNext" class="btn btn-sm btn-light" title="Faturas futuras"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div class="card-body p-2" style="height:220px;">
+                <canvas id="graficoFaturasCartao" style="height:180px;max-height:200px;"></canvas>
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const allLabels = {{ grafico_labels|safe }};
+            const allValores = {{ grafico_valores|safe }};
+            const allStatus = {{ grafico_status|safe }};
+            const allCores = {{ grafico_cores|safe }};
+            const ctxFatura = document.getElementById('graficoFaturasCartao');
+            let startIdx = Math.max(0, allLabels.length - 6 - 3); // 3 antes do atual
+            let endIdx = Math.min(allLabels.length, startIdx + 9); // 9 meses visíveis
+            function renderFaturaChart() {
+                const labels = allLabels.slice(startIdx, endIdx);
+                const valores = allValores.slice(startIdx, endIdx);
+                const status = allStatus.slice(startIdx, endIdx);
+                const cores = allCores.slice(startIdx, endIdx);
+                // Identificar o mês atual para destacar
+                const hoje = new Date();
+                const mesAtual = hoje.getMonth() + 1;
+                const anoAtual = hoje.getFullYear();
+                const meses = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12,'Jan.':1,'Feb.':2,'Mar.':3,'Apr.':4,'May.':5,'Jun.':6,'Jul.':7,'Aug.':8,'Sep.':9,'Oct.':10,'Nov.':11,'Dec.':12};
+                const bordasFatura = labels.map(label => {
+                    const [mes, ano] = label.split('/');
+                    const mesNum = meses[mes] || 1;
+                    return (mesNum === mesAtual && parseInt(ano) === anoAtual) ? '#000' : 'transparent';
+                });
+                if (window.faturaChart) window.faturaChart.destroy();
+                window.faturaChart = new Chart(ctxFatura.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Valor da Fatura',
+                            data: valores,
+                            backgroundColor: cores,
+                            borderColor: bordasFatura,
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        return 'Fatura: ' + context[0].label;
+                                    },
+                                    label: function(context) {
+                                        const st = status[context.dataIndex];
+                                        return [
+                                            'Valor: R$ ' + context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2}),
+                                            'Status: ' + st
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } },
+                            y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { font: { size: 11 }, callback: function(value) { return 'R$ ' + value.toLocaleString('pt-BR'); } } }
+                        },
+                        interaction: { intersect: false, mode: 'index' }
+                    }
+                });
+            }
+            renderFaturaChart();
+            document.getElementById('faturaPrev').onclick = function() {
+                if (startIdx > 0) {
+                    startIdx--;
+                    endIdx--;
+                    renderFaturaChart();
+                }
+            };
+            document.getElementById('faturaNext').onclick = function() {
+                if (endIdx < allLabels.length) {
+                    startIdx++;
+                    endIdx++;
+                    renderFaturaChart();
+                }
+            };
+        });
+        </script>
+    {% endif %}
+</div>
+
+<script>
+// Seleção/deseleção de cards de fatura
+let faturaSelecionada = null;
+document.querySelectorAll('.fatura-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        const id = this.getAttribute('data-fatura-id');
+        if (faturaSelecionada === id) {
+            this.classList.remove('fatura-card-selecionada');
+            faturaSelecionada = null;
+            document.querySelectorAll('.fatura-card').forEach(c => c.style.display = '');
+        } else {
+            document.querySelectorAll('.fatura-card').forEach(c => {
+                c.classList.remove('fatura-card-selecionada');
+                c.style.display = 'none';
+            });
+            this.classList.add('fatura-card-selecionada');
+            this.style.display = '';
+            faturaSelecionada = id;
+        }
+    });
+});
+</script>
+
+<style>
+.card, .card-body, .card.shadow, .card.h-100 {
+    min-height: 220px;
+    height: 100%;
+}
+.cartao-card {
+    border-radius: 20px;
+    box-shadow: 0 2px 8px #0002;
+    border: 2px solid transparent;
+}
+.cartao-card-selecionado {
+    border: 2px solid #007bff !important;
+    box-shadow: 0 0 0 3px #007bff33 !important;
+    background: #e9f5ff !important;
+}
+.fatura-card {
+    border: 2px solid transparent;
+}
+.fatura-card-selecionada {
+    border: 2px solid #007bff !important;
+    box-shadow: 0 0 0 3px #007bff33 !important;
+    background: #e9f5ff !important;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Reativar Cartão de Crédito{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-redo me-2"></i>Reativar Cartão de Crédito</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Tem certeza que deseja <strong>reativar</strong> o cartão <strong>{{ cartao.nome }}</strong>?</p>
+                    <p class="text-muted">O cartão voltará a aparecer entre os ativos e poderá ser usado normalmente em novas despesas.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success"><i class="fas fa-redo me-1"></i>Reativar</button>
+                        <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-secondary ms-2">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

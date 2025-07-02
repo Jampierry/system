@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, CartaoCredito
+from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, CartaoCredito, Fatura
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Submit, Button, HTML
 from crispy_bootstrap5.bootstrap5 import FloatingField
@@ -286,16 +286,61 @@ class ConfiguracaoForm(forms.ModelForm):
         ('MM/DD/YYYY', 'MM/DD/YYYY'),
         ('YYYY-MM-DD', 'YYYY-MM-DD'),
     ]
+    TIPO_DASHBOARD_CHOICES = [
+        ('moderno', 'Dashboard Moderno'),
+        ('classico', 'Dashboard Clássico'),
+    ]
+    LAYOUT_CHOICES = [
+        ('default', 'Padrão'),
+        ('compact', 'Compacto'),
+        ('wide', 'Amplo'),
+        ('tall', 'Alto'),
+    ]
+    TEMA_CHOICES = [
+        ('default', 'Padrão'),
+        ('dark', 'Escuro'),
+        ('light', 'Claro'),
+        ('colorful', 'Colorido'),
+    ]
+    
     moeda_padrao = forms.ChoiceField(choices=MOEDA_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
     formato_data = forms.ChoiceField(choices=FORMATO_DATA_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+    dashboard_tipo = forms.ChoiceField(
+        choices=TIPO_DASHBOARD_CHOICES, 
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Tipo de Dashboard'
+    )
+    dashboard_layout = forms.ChoiceField(
+        choices=LAYOUT_CHOICES, 
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Layout do Dashboard'
+    )
+    dashboard_tema = forms.ChoiceField(
+        choices=TEMA_CHOICES, 
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Tema do Dashboard'
+    )
+    dashboard_refresh = forms.IntegerField(
+        min_value=1,
+        max_value=60,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+        label='Refresh Automático (minutos)',
+        help_text='Intervalo de atualização automática do dashboard'
+    )
 
     class Meta:
         model = Configuracao
-        fields = ['moeda_padrao', 'formato_data', 'tema_escuro', 'notificacoes_email', 'backup_automatico']
+        fields = [
+            'moeda_padrao', 'formato_data', 'tema_escuro', 'notificacoes_email', 'backup_automatico',
+            'dashboard_tipo', 'dashboard_layout', 'dashboard_tema', 'dashboard_refresh',
+            'dashboard_animations', 'dashboard_dragdrop'
+        ]
         widgets = {
             'tema_escuro': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'notificacoes_email': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'backup_automatico': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'dashboard_animations': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'dashboard_dragdrop': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -404,6 +449,30 @@ class CartaoCreditoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user:
             self.fields['conta_pagamento'].queryset = Conta.objects.filter(usuario=user, ativo=True)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Salvar', css_class='btn-primary'))
+        self.helper.add_input(Button('cancel', 'Cancelar', css_class='btn-secondary', onclick='history.back()')) 
+
+class FaturaForm(forms.ModelForm):
+    class Meta:
+        model = Fatura
+        fields = ['cartao', 'mes', 'ano', 'valor', 'vencimento', 'paga', 'ajustada', 'data_pagamento']
+        widgets = {
+            'cartao': forms.Select(attrs={'class': 'form-control'}),
+            'mes': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
+            'ano': forms.NumberInput(attrs={'class': 'form-control', 'min': 2000, 'max': 2100}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'vencimento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'paga': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'ajustada': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'data_pagamento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['cartao'].queryset = CartaoCredito.objects.filter(usuario=user, ativo=True)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Salvar', css_class='btn-primary'))

@@ -57,4 +57,8 @@ def percentage(value, total=100):
             return f'{percent:.1f}%'
         return '0%'
     except:
-        return '0%' 
+        return '0%'
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key) 

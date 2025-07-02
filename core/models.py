@@ -5,6 +5,7 @@ from decimal import Decimal
 import uuid
 from django.utils import timezone
 from datetime import date
+import calendar
 
 class Categoria(models.Model):
     TIPO_CHOICES = [
@@ -151,6 +152,7 @@ class Despesa(models.Model):
     tipo_pagamento = models.CharField(max_length=30, choices=TIPO_PAGAMENTO_CHOICES, default='dinheiro')
     cartao = models.ForeignKey('CartaoCredito', null=True, blank=True, on_delete=models.SET_NULL, related_name='despesas_cartao')
     parcelas = models.PositiveIntegerField(null=True, blank=True)
+    fatura = models.ForeignKey('Fatura', null=True, blank=True, on_delete=models.SET_NULL, related_name='despesas_fatura')
     ativo = models.BooleanField(default=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
@@ -165,9 +167,43 @@ class Despesa(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Atualiza o saldo da conta
         self.conta.atualizar_saldo()
-        # Se for cartão de crédito, pode atualizar limite/fatura futuramente
+        if self.cartao and self.tipo_pagamento.startswith('cartao_credito'):
+            from core.models import Fatura
+            from datetime import date
+            fechamento = self.cartao.data_fechamento_fatura
+            vencimento = self.cartao.data_vencimento_fatura
+            data_compra = self.data
+            parcelas = self.parcelas or 1
+            if data_compra.day <= fechamento:
+                mes_fatura = data_compra.month
+                ano_fatura = data_compra.year
+            else:
+                if data_compra.month == 12:
+                    mes_fatura = 1
+                    ano_fatura = data_compra.year + 1
+                else:
+                    mes_fatura = data_compra.month + 1
+                    ano_fatura = data_compra.year
+            for i in range(parcelas):
+                mes = mes_fatura + i
+                ano = ano_fatura
+                while mes > 12:
+                    mes -= 12
+                    ano += 1
+                try:
+                    data_venc = date(ano, mes, vencimento)
+                except Exception:
+                    from calendar import monthrange
+                    data_venc = date(ano, mes, monthrange(ano, mes)[1])
+                fatura, _ = Fatura.objects.get_or_create(
+                    cartao=self.cartao, mes=mes, ano=ano,
+                    defaults={'vencimento': data_venc, 'valor': 0}
+                )
+                # Associa a despesa à fatura correta (apenas para a parcela correspondente)
+                if i == 0:
+                    self.fatura = fatura
+                    super().save(update_fields=['fatura'])
 
 class Transferencia(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -248,6 +284,13 @@ class Configuracao(models.Model):
     tema_escuro = models.BooleanField(default=False)
     notificacoes_email = models.BooleanField(default=True)
     backup_automatico = models.BooleanField(default=True)
+    # Novos campos para dashboard
+    dashboard_tipo = models.CharField(max_length=20, default='moderno', choices=[('moderno', 'Moderno'), ('classico', 'Clássico')])
+    dashboard_layout = models.CharField(max_length=20, default='default', choices=[('default', 'Padrão'), ('compact', 'Compacto'), ('wide', 'Amplo'), ('tall', 'Alto')])
+    dashboard_tema = models.CharField(max_length=20, default='default', choices=[('default', 'Padrão'), ('dark', 'Escuro'), ('light', 'Claro'), ('colorful', 'Colorido')])
+    dashboard_refresh = models.PositiveIntegerField(default=5, help_text='Intervalo de atualização automática (minutos)')
+    dashboard_animations = models.BooleanField(default=True)
+    dashboard_dragdrop = models.BooleanField(default=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
@@ -399,3 +442,57 @@ class CartaoCredito(models.Model):
         else:
             # Se ainda não chegou o dia de fechamento, usa o mês atual
             return date(hoje.year, hoje.month, self.data_fechamento_fatura)
+
+class Fatura(models.Model):
+    cartao = models.ForeignKey('CartaoCredito', on_delete=models.CASCADE, related_name='faturas')
+    mes = models.PositiveSmallIntegerField()
+    ano = models.PositiveSmallIntegerField()
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    vencimento = models.DateField()
+    paga = models.BooleanField(default=False)
+    ajustada = models.BooleanField(default=False)
+    data_pagamento = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('cartao', 'mes', 'ano')
+        ordering = ['-ano', '-mes']
+
+    def __str__(self):
+        return f'Fatura {self.get_mes_display()}/{self.ano} - {self.cartao.nome}'
+
+    def get_mes_display(self):
+        return calendar.month_abbr[self.mes].capitalize()
+
+    @property
+    def status(self):
+        if self.paga:
+            return 'Paga'
+        elif self.vencimento < timezone.now().date():
+            return 'Vencida'
+        else:
+            return 'Em aberto'
+
+    def despesas_do_ciclo(self):
+        """Retorna as despesas do cartão que pertencem a este ciclo de fatura."""
+        fechamento_atual = self.cartao.data_fechamento_fatura
+        # Calcular data de fechamento anterior
+        if self.mes == 1:
+            mes_anterior = 12
+            ano_anterior = self.ano - 1
+        else:
+            mes_anterior = self.mes - 1
+            ano_anterior = self.ano
+        from datetime import date
+        data_fechamento_anterior = date(ano_anterior, mes_anterior, fechamento_atual)
+        data_fechamento_atual = date(self.ano, self.mes, fechamento_atual)
+        return self.cartao.despesas_cartao.filter(
+            data__gt=data_fechamento_anterior,
+            data__lte=data_fechamento_atual,
+            ativo=True
+        )
+
+    def valor_calculado(self):
+        """Soma das despesas do ciclo, se não ajustada manualmente."""
+        if self.ajustada:
+            return self.valor
+        return self.despesas_do_ciclo().aggregate(models.Sum('valor'))['valor__sum'] or 0

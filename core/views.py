@@ -17,12 +17,12 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import logging
-
-from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao, CartaoCredito
+from django.urls import reverse
+from .models import Categoria, Conta, Receita, Despesa, Transferencia, Meta, Configuracao, Notificacao, CartaoCredito, Fatura
 from .forms import (
     UserRegistrationForm, CategoriaForm, ContaForm, ReceitaForm, DespesaForm,
     TransferenciaForm, MetaForm, ConfiguracaoForm, FiltroRelatorioForm, ReceitaFiltroForm, DespesaFiltroForm,
-    CartaoCreditoForm
+    CartaoCreditoForm, FaturaForm
 )
 
 def register(request):
@@ -66,10 +66,34 @@ def register(request):
 
 @login_required
 def dashboard(request):
+    # Obter configurações do usuário
+    configuracao, created = Configuracao.objects.get_or_create(usuario=request.user)
+    
+    # Verificar tipo de dashboard solicitado (prioridade para parâmetro GET)
+    dashboard_type = request.GET.get('type', configuracao.dashboard_tipo)
+    
+    # Se for dashboard clássico, renderizar template diferente
+    if dashboard_type == 'classico':
+        return dashboard_classic(request)
+    
+    # Dashboard moderno (padrão)
+    return dashboard_responsive(request)
+
+@login_required
+def dashboard_responsive(request):
     # Dados básicos do mês atual
     hoje = timezone.now()
     mes_atual = hoje.month
     ano_atual = hoje.year
+    
+    # Configuração do usuário
+    configuracao, _ = Configuracao.objects.get_or_create(usuario=request.user)
+    tema_escuro = configuracao.tema_escuro
+    dashboard_animations = configuracao.dashboard_animations
+    dashboard_dragdrop = configuracao.dashboard_dragdrop
+    dashboard_refresh = configuracao.dashboard_refresh
+    dashboard_tema = configuracao.dashboard_tema
+    dashboard_layout = configuracao.dashboard_layout
     
     # Receitas e despesas do mês atual
     receitas_mes = Receita.objects.filter(
@@ -203,10 +227,24 @@ def dashboard(request):
     dados_categorias = [float(cat['total']) for cat in categorias_despesas]
     cores_categorias = [cat['categoria__cor'] or '#007bff' for cat in categorias_despesas]
     
+    # Cartões de crédito
+    cartoes_credito = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    total_limite_cartoes = cartoes_credito.aggregate(total=Sum('limite_total'))['total'] or 0
+    total_utilizado_cartoes = sum(cartao.limite_utilizado for cartao in cartoes_credito)
+    total_disponivel_cartoes = total_limite_cartoes - total_utilizado_cartoes
+    percentual_utilizacao = (total_utilizado_cartoes / total_limite_cartoes * 100) if total_limite_cartoes > 0 else 0
+    
+    # Despesas no cartão no mês atual
+    despesas_cartao_mes = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        cartao__isnull=False,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+    
     # Alertas e notificações
     alertas = []
-    
-    # Alerta de saldo negativo
     if saldo_mes < 0:
         alertas.append({
             'tipo': 'danger',
@@ -214,8 +252,6 @@ def dashboard(request):
             'mensagem': f'Seu saldo este mês está negativo em R$ {abs(saldo_mes):.2f}',
             'data': hoje
         })
-    
-    # Alerta de despesas altas
     if receitas_mes > 0 and despesas_mes > receitas_mes * Decimal('0.9'):
         alertas.append({
             'tipo': 'warning',
@@ -223,15 +259,12 @@ def dashboard(request):
             'mensagem': 'Suas despesas estão consumindo mais de 90% das suas receitas',
             'data': hoje
         })
-    
-    # Alerta de metas próximas do vencimento
     metas_vencendo = Meta.objects.filter(
         usuario=request.user,
         ativo=True,
         data_fim__lte=hoje.date() + timedelta(days=30),
         data_fim__gt=hoje.date()
     )
-    
     for meta in metas_vencendo:
         percentual = (meta.valor_atual / meta.valor_meta * 100) if meta.valor_meta > 0 else 0
         dias_restantes = (meta.data_fim - hoje.date()).days
@@ -252,18 +285,20 @@ def dashboard(request):
         )
     ).order_by('-percentual')[:3]
     
-    # Transações recentes (últimas 10)
+    # Transações recentes (receitas, despesas e transferências)
     receitas_recentes = Receita.objects.filter(
         usuario=request.user,
         ativo=True
     ).select_related('categoria', 'conta').order_by('-data')[:5]
-    
     despesas_recentes = Despesa.objects.filter(
         usuario=request.user,
         ativo=True
     ).select_related('categoria', 'conta').order_by('-data')[:5]
-    
-    # Combinar e ordenar transações
+    transferencias_recentes = Transferencia.objects.filter(
+        usuario=request.user,
+        ativo=True
+    ).select_related('conta_origem', 'conta_destino').order_by('-data')[:5]
+
     transacoes_recentes = []
     for receita in receitas_recentes:
         transacoes_recentes.append({
@@ -274,7 +309,6 @@ def dashboard(request):
             'valor': receita.valor,
             'tipo': 'receita'
         })
-    
     for despesa in despesas_recentes:
         transacoes_recentes.append({
             'data': despesa.data,
@@ -284,72 +318,18 @@ def dashboard(request):
             'valor': despesa.valor,
             'tipo': 'despesa'
         })
-    
+    for transferencia in transferencias_recentes:
+        transacoes_recentes.append({
+            'data': transferencia.data,
+            'descricao': transferencia.descricao,
+            'categoria': None,
+            'conta': transferencia.conta_origem,
+            'conta_destino': transferencia.conta_destino,
+            'valor': transferencia.valor,
+            'tipo': 'transferencia'
+        })
     transacoes_recentes.sort(key=lambda x: x['data'], reverse=True)
     transacoes_recentes = transacoes_recentes[:10]
-    
-    # Cartões de crédito
-    cartoes_credito = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
-    
-    # Dados dos cartões de crédito
-    total_limite_cartoes = cartoes_credito.aggregate(total=Sum('limite_total'))['total'] or 0
-    
-    # Calcular limite utilizado somando as despesas em cartão
-    total_utilizado_cartoes = Despesa.objects.filter(
-        cartao__in=cartoes_credito,
-        ativo=True
-    ).aggregate(total=Sum('valor'))['total'] or 0
-    
-    total_disponivel_cartoes = total_limite_cartoes - total_utilizado_cartoes
-    
-    # Calcular percentual de utilização
-    percentual_utilizacao = 0
-    if total_limite_cartoes > 0:
-        percentual_utilizacao = (total_utilizado_cartoes / total_limite_cartoes) * 100
-    
-    # Despesas em cartão de crédito no mês atual
-    despesas_cartao_mes = Despesa.objects.filter(
-        usuario=request.user,
-        cartao__isnull=False,
-        data__month=mes_atual,
-        data__year=ano_atual,
-        ativo=True
-    ).aggregate(total=Sum('valor'))['total'] or 0
-    
-    # Cartões próximos do vencimento (próximos 7 dias)
-    hoje = timezone.now().date()
-    cartoes_vencendo = []
-    
-    for cartao in cartoes_credito:
-        data_vencimento = cartao.data_vencimento
-        dias_restantes = (data_vencimento - hoje).days
-        if 0 <= dias_restantes <= 7:
-            cartoes_vencendo.append(cartao)
-    
-    # Alertas para cartões de crédito
-    for cartao in cartoes_credito:
-        limite_utilizado = cartao.limite_utilizado
-        limite_disponivel = cartao.limite_disponivel
-        
-        # Alerta de limite próximo do esgotamento
-        if limite_disponivel < cartao.limite_total * Decimal('0.1'):  # Menos de 10% disponível
-            alertas.append({
-                'tipo': 'warning',
-                'titulo': f'Cartão: {cartao.nome}',
-                'mensagem': f'Limite quase esgotado. Disponível: {limite_disponivel:.2f}',
-                'data': hoje
-            })
-        
-        # Alerta de vencimento próximo
-        data_vencimento = cartao.data_vencimento
-        dias_vencimento = (data_vencimento - hoje).days
-        if 0 <= dias_vencimento <= 3:
-            alertas.append({
-                'tipo': 'danger',
-                'titulo': f'Cartão: {cartao.nome}',
-                'mensagem': f'Fatura vence em {dias_vencimento} dias',
-                'data': hoje
-            })
     
     context = {
         'receitas_mes': receitas_mes,
@@ -357,14 +337,14 @@ def dashboard(request):
         'saldo_mes': saldo_mes,
         'receitas_count': receitas_count,
         'despesas_count': despesas_count,
-        'metas_ativas_count': metas_ativas_count,
-        'metas_total_count': metas_total_count,
-        'metas_concluidas_count': metas_concluidas_count,
         'receitas_trend': receitas_trend,
         'despesas_trend': despesas_trend,
         'saldo_trend': saldo_trend,
         'receitas_tendencia': receitas_tendencia,
         'despesas_tendencia': despesas_tendencia,
+        'metas_ativas_count': metas_ativas_count,
+        'metas_total_count': metas_total_count,
+        'metas_concluidas_count': metas_concluidas_count,
         'previsao_proximo_mes': previsao_proximo_mes,
         'previsao_trimestre': previsao_trimestre,
         'previsao_ano': previsao_ano,
@@ -375,19 +355,315 @@ def dashboard(request):
         'labels_categorias': json.dumps(labels_categorias),
         'dados_categorias': json.dumps(dados_categorias),
         'cores_categorias': json.dumps(cores_categorias),
-        'alertas': alertas,
-        'metas_destaque': metas_destaque,
-        'transacoes_recentes': transacoes_recentes,
         'cartoes_credito': cartoes_credito,
         'total_limite_cartoes': total_limite_cartoes,
         'total_utilizado_cartoes': total_utilizado_cartoes,
         'total_disponivel_cartoes': total_disponivel_cartoes,
-        'despesas_cartao_mes': despesas_cartao_mes,
-        'cartoes_vencendo': cartoes_vencendo,
         'percentual_utilizacao': percentual_utilizacao,
+        'despesas_cartao_mes': despesas_cartao_mes,
+        'cartoes_vencendo': [],
+        'alertas': alertas,
+        'metas_destaque': metas_destaque,
+        'transacoes_recentes': transacoes_recentes,
+        'tema_escuro': tema_escuro,
+        'dashboard_animations': dashboard_animations,
+        'dashboard_dragdrop': dashboard_dragdrop,
+        'dashboard_refresh': dashboard_refresh,
+        'dashboard_tema': dashboard_tema,
+        'dashboard_layout': dashboard_layout,
     }
     
     return render(request, 'core/dashboard.html', context)
+
+@login_required
+def dashboard_classic(request):
+    hoje = timezone.now().date()
+    mes_atual = hoje.month
+    ano_atual = hoje.year
+
+    # Dados financeiros principais
+    receitas_mes = Receita.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    despesas_mes = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    saldo_mes = receitas_mes - despesas_mes
+
+    receitas_count = Receita.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).count()
+
+    despesas_count = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).count()
+
+    metas_ativas = Meta.objects.filter(usuario=request.user, ativo=True)
+    metas_ativas_count = metas_ativas.count()
+    metas_total_count = Meta.objects.filter(usuario=request.user).count()
+    metas_concluidas_count = metas_ativas.filter(valor_atual__gte=F('valor_meta')).count()
+
+    mes_anterior = hoje.replace(day=1) - timedelta(days=1)
+    receitas_mes_anterior = Receita.objects.filter(
+        usuario=request.user,
+        data__month=mes_anterior.month,
+        data__year=mes_anterior.year,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    despesas_mes_anterior = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_anterior.month,
+        data__year=mes_anterior.year,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    saldo_mes_anterior = receitas_mes_anterior - despesas_mes_anterior
+
+    receitas_trend = ((receitas_mes - receitas_mes_anterior) / receitas_mes_anterior * 100) if receitas_mes_anterior > 0 else 0
+    despesas_trend = ((despesas_mes - despesas_mes_anterior) / despesas_mes_anterior * 100) if despesas_mes_anterior > 0 else 0
+    saldo_trend = ((saldo_mes - saldo_mes_anterior) / abs(saldo_mes_anterior) * 100) if saldo_mes_anterior != 0 else 0
+
+    receitas_tendencia = 'crescendo' if receitas_trend > 5 else 'decrescendo' if receitas_trend < -5 else 'estavel'
+    despesas_tendencia = 'crescendo' if despesas_trend > 5 else 'decrescendo' if despesas_trend < -5 else 'estavel'
+
+    previsao_receitas = Receita.objects.filter(
+        usuario=request.user,
+        data__gte=hoje - timedelta(days=90),
+        ativo=True
+    ).aggregate(avg=Avg('valor'))['avg'] or 0
+
+    previsao_despesas = Despesa.objects.filter(
+        usuario=request.user,
+        data__gte=hoje - timedelta(days=90),
+        ativo=True
+    ).aggregate(avg=Avg('valor'))['avg'] or 0
+
+    previsao_receitas = Decimal(previsao_receitas or 0)
+    previsao_despesas = Decimal(previsao_despesas or 0)
+
+    previsao_proximo_mes = previsao_despesas * Decimal('1.1')
+    previsao_trimestre = previsao_despesas * Decimal('3') * Decimal('1.05')
+    previsao_ano = previsao_despesas * Decimal('12') * Decimal('1.15')
+
+    labels_evolucao = []
+    dados_receitas = []
+    dados_despesas = []
+    dados_saldo = []
+    for i in range(5, -1, -1):
+        data = hoje - timedelta(days=30*i)
+        mes = data.month
+        ano = data.year
+        receitas = Receita.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
+        despesas = Despesa.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
+        saldo = receitas - despesas
+        labels_evolucao.append(data.strftime('%b/%Y'))
+        dados_receitas.append(float(receitas))
+        dados_despesas.append(float(despesas))
+        dados_saldo.append(float(saldo))
+
+    categorias_despesas = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        ativo=True
+    ).values('categoria__nome', 'categoria__cor').annotate(
+        total=Sum('valor')
+    ).order_by('-total')[:8]
+    labels_categorias = [cat['categoria__nome'] for cat in categorias_despesas]
+    dados_categorias = [float(cat['total']) for cat in categorias_despesas]
+    cores_categorias = [cat['categoria__cor'] or '#007bff' for cat in categorias_despesas]
+
+    # Cartões de crédito
+    cartoes_credito = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    total_limite_cartoes = cartoes_credito.aggregate(total=Sum('limite_total'))['total'] or 0
+    total_utilizado_cartoes = sum(cartao.limite_utilizado for cartao in cartoes_credito)
+    total_disponivel_cartoes = total_limite_cartoes - total_utilizado_cartoes
+    percentual_utilizacao = (total_utilizado_cartoes / total_limite_cartoes * 100) if total_limite_cartoes > 0 else 0
+    despesas_cartao_mes = Despesa.objects.filter(
+        usuario=request.user,
+        data__month=mes_atual,
+        data__year=ano_atual,
+        cartao__isnull=False,
+        ativo=True
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    # Cartões próximos do vencimento (próximos 7 dias)
+    cartoes_vencendo = []
+    for cartao in cartoes_credito:
+        dias_ate_vencimento = (cartao.data_vencimento - hoje).days
+        if 0 <= dias_ate_vencimento <= 7:
+            cartoes_vencendo.append({
+                'nome': cartao.nome,
+                'data_vencimento': cartao.data_vencimento,
+                'dias_restantes': dias_ate_vencimento,
+                'valor_fatura': cartao.limite_utilizado
+            })
+
+    # Notificações reais do usuário (últimas 5 não lidas)
+    notificacoes_recentes = Notificacao.objects.filter(
+        usuario=request.user,
+        lida=False
+    ).order_by('-data_criacao')[:5]
+
+    # Alertas inteligentes
+    alertas = []
+    if saldo_mes < 0:
+        alertas.append({
+            'tipo': 'danger',
+            'titulo': 'Saldo Negativo',
+            'mensagem': f'Seu saldo este mês está negativo em R$ {abs(saldo_mes):.2f}',
+            'data': hoje
+        })
+    if receitas_mes > 0 and despesas_mes > receitas_mes * Decimal('0.9'):
+        alertas.append({
+            'tipo': 'warning',
+            'titulo': 'Despesas Elevadas',
+            'mensagem': 'Suas despesas estão consumindo mais de 90% das suas receitas',
+            'data': hoje
+        })
+    metas_vencendo = Meta.objects.filter(
+        usuario=request.user,
+        ativo=True,
+        data_fim__lte=hoje + timedelta(days=30),
+        data_fim__gt=hoje
+    )
+    for meta in metas_vencendo:
+        percentual = (meta.valor_atual / meta.valor_meta * 100) if meta.valor_meta > 0 else 0
+        dias_restantes = (meta.data_fim - hoje).days
+        if percentual < 80:
+            alertas.append({
+                'tipo': 'warning',
+                'titulo': f'Meta: {meta.titulo}',
+                'mensagem': f'Meta vence em {dias_restantes} dias. Progresso: {percentual:.1f}%',
+                'data': hoje
+            })
+    # Adicionar notificações aos alertas
+    for notif in notificacoes_recentes:
+        alertas.append({
+            'tipo': notif.tipo,
+            'titulo': notif.titulo,
+            'mensagem': notif.mensagem,
+            'data': notif.data_criacao.date(),
+            'link': notif.link,
+            'icone': notif.icone
+        })
+
+    metas_destaque = metas_ativas.annotate(
+        percentual=Case(
+            When(valor_meta__gt=0, then=F('valor_atual') * Decimal('100') / F('valor_meta')),
+            default=0,
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
+    ).order_by('-percentual')[:3]
+
+    # Transações recentes (receitas, despesas e transferências)
+    receitas_recentes = Receita.objects.filter(
+        usuario=request.user,
+        ativo=True
+    ).select_related('categoria', 'conta').order_by('-data')[:5]
+    despesas_recentes = Despesa.objects.filter(
+        usuario=request.user,
+        ativo=True
+    ).select_related('categoria', 'conta').order_by('-data')[:5]
+    transferencias_recentes = Transferencia.objects.filter(
+        usuario=request.user,
+        ativo=True
+    ).select_related('conta_origem', 'conta_destino').order_by('-data')[:5]
+
+    transacoes_recentes = []
+    for receita in receitas_recentes:
+        transacoes_recentes.append({
+            'data': receita.data,
+            'descricao': receita.descricao,
+            'categoria': receita.categoria,
+            'conta': receita.conta,
+            'valor': receita.valor,
+            'tipo': 'receita'
+        })
+    for despesa in despesas_recentes:
+        transacoes_recentes.append({
+            'data': despesa.data,
+            'descricao': despesa.descricao,
+            'categoria': despesa.categoria,
+            'conta': despesa.conta,
+            'valor': despesa.valor,
+            'tipo': 'despesa'
+        })
+    for transferencia in transferencias_recentes:
+        transacoes_recentes.append({
+            'data': transferencia.data,
+            'descricao': transferencia.descricao,
+            'categoria': None,
+            'conta': transferencia.conta_origem,
+            'conta_destino': transferencia.conta_destino,
+            'valor': transferencia.valor,
+            'tipo': 'transferencia'
+        })
+    transacoes_recentes.sort(key=lambda x: x['data'], reverse=True)
+    transacoes_recentes = transacoes_recentes[:10]
+
+    context = {
+        'receitas_mes': receitas_mes,
+        'despesas_mes': despesas_mes,
+        'saldo_mes': saldo_mes,
+        'receitas_count': receitas_count,
+        'despesas_count': despesas_count,
+        'receitas_trend': receitas_trend,
+        'despesas_trend': despesas_trend,
+        'saldo_trend': saldo_trend,
+        'receitas_tendencia': receitas_tendencia,
+        'despesas_tendencia': despesas_tendencia,
+        'metas_ativas_count': metas_ativas_count,
+        'metas_total_count': metas_total_count,
+        'metas_concluidas_count': metas_concluidas_count,
+        'previsao_proximo_mes': previsao_proximo_mes,
+        'previsao_trimestre': previsao_trimestre,
+        'previsao_ano': previsao_ano,
+        'labels_evolucao': json.dumps(labels_evolucao),
+        'dados_evolucao_receitas': json.dumps(dados_receitas),
+        'dados_evolucao_despesas': json.dumps(dados_despesas),
+        'dados_evolucao_saldo': json.dumps(dados_saldo),
+        'labels_categorias': json.dumps(labels_categorias),
+        'dados_categorias': json.dumps(dados_categorias),
+        'cores_categorias': json.dumps(cores_categorias),
+        'cartoes_credito': cartoes_credito,
+        'total_limite_cartoes': total_limite_cartoes,
+        'total_utilizado_cartoes': total_utilizado_cartoes,
+        'total_disponivel_cartoes': total_disponivel_cartoes,
+        'percentual_utilizacao': percentual_utilizacao,
+        'despesas_cartao_mes': despesas_cartao_mes,
+        'cartoes_vencendo': cartoes_vencendo,
+        'alertas': alertas,
+        'notificacoes_recentes': notificacoes_recentes,
+        'metas_destaque': metas_destaque,
+        'transacoes_recentes': transacoes_recentes,
+    }
+    return render(request, 'core/dashboard_classic.html', context)
 
 # Views para Categorias
 @login_required
@@ -814,15 +1090,19 @@ def meta_delete(request, pk):
 def relatorio_financeiro(request):
     form = FiltroRelatorioForm(request.GET, user=request.user)
     
+    # Definir período padrão
+    hoje = timezone.now().date()
+    data_inicio = hoje - timedelta(days=30)
+    data_fim = hoje
+    
     if form.is_valid():
         periodo = form.cleaned_data.get('periodo')
-        data_inicio = form.cleaned_data.get('data_inicio')
-        data_fim = form.cleaned_data.get('data_fim')
+        data_inicio_form = form.cleaned_data.get('data_inicio')
+        data_fim_form = form.cleaned_data.get('data_fim')
         categoria = form.cleaned_data.get('categoria')
         conta = form.cleaned_data.get('conta')
         
         # Definir período
-        hoje = timezone.now().date()
         if periodo == '7d':
             data_inicio = hoje - timedelta(days=7)
             data_fim = hoje
@@ -838,25 +1118,30 @@ def relatorio_financeiro(request):
         elif periodo == '1y':
             data_inicio = hoje - timedelta(days=365)
             data_fim = hoje
-        elif periodo == 'custom' and data_inicio and data_fim:
-            pass  # Usar datas personalizadas
+        elif periodo == 'custom' and data_inicio_form and data_fim_form:
+            data_inicio = data_inicio_form
+            data_fim = data_fim_form
         else:
             data_inicio = hoje - timedelta(days=30)
             data_fim = hoje
-        
-        # Filtrar dados
-        receitas = Receita.objects.filter(
-            usuario=request.user,
-            data__gte=data_inicio,
-            data__lte=data_fim,
-            ativo=True
-        )
-        despesas = Despesa.objects.filter(
-            usuario=request.user,
-            data__gte=data_inicio,
-            data__lte=data_fim,
-            ativo=True
-        )
+    
+    # Filtrar dados
+    receitas = Receita.objects.filter(
+        usuario=request.user,
+        data__gte=data_inicio,
+        data__lte=data_fim,
+        ativo=True
+    )
+    despesas = Despesa.objects.filter(
+        usuario=request.user,
+        data__gte=data_inicio,
+        data__lte=data_fim,
+        ativo=True
+    )
+    
+    if form.is_valid():
+        categoria = form.cleaned_data.get('categoria')
+        conta = form.cleaned_data.get('conta')
         
         if categoria:
             receitas = receitas.filter(categoria=categoria)
@@ -865,46 +1150,167 @@ def relatorio_financeiro(request):
         if conta:
             receitas = receitas.filter(conta=conta)
             despesas = despesas.filter(conta=conta)
+    
+    # Calcular totais
+    total_receitas = receitas.aggregate(total=Sum('valor'))['total'] or 0
+    total_despesas = despesas.aggregate(total=Sum('valor'))['total'] or 0
+    saldo = total_receitas - total_despesas
+    
+    # Contadores
+    receitas_count = receitas.count()
+    despesas_count = despesas.count()
+    
+    # Metas
+    metas_ativas = Meta.objects.filter(usuario=request.user, ativo=True)
+    metas_count = Meta.objects.filter(usuario=request.user).count()
+    metas_ativas_count = metas_ativas.count()
+    
+    # Dados por categoria
+    receitas_por_categoria = receitas.values('categoria__nome').annotate(
+        total=Sum('valor')
+    ).order_by('-total')
+    
+    despesas_por_categoria = despesas.values('categoria__nome').annotate(
+        total=Sum('valor')
+    ).order_by('-total')
+    
+    # Dados por conta
+    receitas_por_conta = receitas.values('conta__nome').annotate(
+        total=Sum('valor')
+    ).order_by('-total')
+    
+    despesas_por_conta = despesas.values('conta__nome').annotate(
+        total=Sum('valor')
+    ).order_by('-total')
+    
+    # Top receitas e despesas
+    top_receitas = receitas.order_by('-valor')[:10]
+    top_despesas = despesas.order_by('-valor')[:10]
+    
+    # Dados para gráficos
+    # Gráfico de Receitas vs Despesas (últimos 6 meses)
+    labels_receitas_despesas = []
+    dados_receitas = []
+    dados_despesas = []
+    
+    for i in range(5, -1, -1):
+        data = hoje - timedelta(days=30*i)
+        mes = data.month
+        ano = data.year
         
-        # Calcular totais
-        total_receitas = receitas.aggregate(total=Sum('valor'))['total'] or 0
-        total_despesas = despesas.aggregate(total=Sum('valor'))['total'] or 0
-        saldo = total_receitas - total_despesas
+        receitas_mes = Receita.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
         
-        # Dados por categoria
-        receitas_por_categoria = receitas.values('categoria__nome').annotate(
-            total=Sum('valor')
-        ).order_by('-total')
+        despesas_mes = Despesa.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
         
-        despesas_por_categoria = despesas.values('categoria__nome').annotate(
-            total=Sum('valor')
-        ).order_by('-total')
+        labels_receitas_despesas.append(data.strftime('%b/%Y'))
+        dados_receitas.append(float(receitas_mes))
+        dados_despesas.append(float(despesas_mes))
+    
+    # Gráfico de Categorias
+    categorias_despesas = Despesa.objects.filter(
+        usuario=request.user,
+        data__gte=data_inicio,
+        data__lte=data_fim,
+        ativo=True
+    ).values('categoria__nome', 'categoria__cor').annotate(
+        total=Sum('valor')
+    ).order_by('-total')[:8]
+    
+    labels_categorias = [cat['categoria__nome'] for cat in categorias_despesas]
+    dados_categorias = [float(cat['total']) for cat in categorias_despesas]
+    cores_categorias = [cat['categoria__cor'] or '#007bff' for cat in categorias_despesas]
+    
+    # Gráfico de Evolução Temporal
+    labels_evolucao = []
+    dados_evolucao_receitas = []
+    dados_evolucao_despesas = []
+    dados_evolucao_saldo = []
+    
+    # Últimos 12 meses
+    for i in range(11, -1, -1):
+        data = hoje - timedelta(days=30*i)
+        mes = data.month
+        ano = data.year
         
-        # Dados por conta
-        receitas_por_conta = receitas.values('conta__nome').annotate(
-            total=Sum('valor')
-        ).order_by('-total')
+        receitas_mes = Receita.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
         
-        despesas_por_conta = despesas.values('conta__nome').annotate(
-            total=Sum('valor')
-        ).order_by('-total')
+        despesas_mes = Despesa.objects.filter(
+            usuario=request.user,
+            data__month=mes,
+            data__year=ano,
+            ativo=True
+        ).aggregate(total=Sum('valor'))['total'] or 0
         
-        context = {
-            'form': form,
-            'data_inicio': data_inicio,
-            'data_fim': data_fim,
-            'total_receitas': total_receitas,
-            'total_despesas': total_despesas,
-            'saldo': saldo,
-            'receitas_por_categoria': receitas_por_categoria,
-            'despesas_por_categoria': despesas_por_categoria,
-            'receitas_por_conta': receitas_por_conta,
-            'despesas_por_conta': despesas_por_conta,
-            'receitas': receitas.order_by('-data'),
-            'despesas': despesas.order_by('-data'),
-        }
-    else:
-        context = {'form': form}
+        saldo_mes = receitas_mes - despesas_mes
+        
+        labels_evolucao.append(data.strftime('%b/%Y'))
+        dados_evolucao_receitas.append(float(receitas_mes))
+        dados_evolucao_despesas.append(float(despesas_mes))
+        dados_evolucao_saldo.append(float(saldo_mes))
+    
+    # Filtro de data para gráfico de evolução temporal dos gastos
+    evolucao_labels = []
+    evolucao_valores = []
+    meses_ptbr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    hoje = timezone.now().date()
+    for i in range(11, -1, -1):
+        ano = hoje.year if hoje.month - i > 0 else hoje.year - 1
+        mes = (hoje.month - i - 1) % 12 + 1
+        evolucao_labels.append(f'{meses_ptbr[mes-1]}/{ano}')
+        despesas_mes = Despesa.objects.filter(usuario=request.user, data__year=ano, data__month=mes, ativo=True)
+        if data_inicio:
+            despesas_mes = despesas_mes.filter(data__gte=data_inicio)
+        if data_fim:
+            despesas_mes = despesas_mes.filter(data__lte=data_fim)
+        evolucao_valores.append(float(despesas_mes.aggregate(total=Sum('valor'))['total'] or 0))
+    
+    context = {
+        'form': form,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'total_receitas': total_receitas,
+        'total_despesas': total_despesas,
+        'saldo': saldo,
+        'receitas_count': receitas_count,
+        'despesas_count': despesas_count,
+        'metas_count': metas_count,
+        'metas_ativas_count': metas_ativas_count,
+        'receitas_por_categoria': receitas_por_categoria,
+        'despesas_por_categoria': despesas_por_categoria,
+        'receitas_por_conta': receitas_por_conta,
+        'despesas_por_conta': despesas_por_conta,
+        'receitas': receitas.order_by('-data'),
+        'despesas': despesas.order_by('-data'),
+        'top_receitas': top_receitas,
+        'top_despesas': top_despesas,
+        'labels_receitas_despesas': json.dumps(labels_receitas_despesas),
+        'dados_receitas': json.dumps(dados_receitas),
+        'dados_despesas': json.dumps(dados_despesas),
+        'labels_categorias': json.dumps(labels_categorias),
+        'dados_categorias': json.dumps(dados_categorias),
+        'cores_categorias': json.dumps(cores_categorias),
+        'labels_evolucao': json.dumps(labels_evolucao),
+        'dados_evolucao_receitas': json.dumps(dados_evolucao_receitas),
+        'dados_evolucao_despesas': json.dumps(dados_evolucao_despesas),
+        'dados_evolucao_saldo': json.dumps(dados_evolucao_saldo),
+        'evolucao_labels': evolucao_labels,
+        'evolucao_valores': evolucao_valores,
+    }
     
     return render(request, 'core/relatorio_financeiro.html', context)
 
@@ -919,9 +1325,16 @@ def configuracoes(request):
             from django.core.management import call_command
             from io import StringIO
             
+            data_inicio = request.POST.get('data_inicio')
+            data_fim = request.POST.get('data_fim')
             try:
                 output = StringIO()
-                call_command('gerar_dados_ficticios', usuario=request.user.username, stdout=output)
+                cmd_kwargs = {'usuario': request.user.username, 'stdout': output}
+                if data_inicio:
+                    cmd_kwargs['data_inicio'] = data_inicio
+                if data_fim:
+                    cmd_kwargs['data_fim'] = data_fim
+                call_command('gerar_dados_ficticios', **cmd_kwargs)
                 messages.success(request, 'Dados fictícios gerados com sucesso!')
             except Exception as e:
                 messages.error(request, f'Erro ao gerar dados fictícios: {str(e)}')
@@ -938,6 +1351,61 @@ def configuracoes(request):
             Categoria.objects.filter(usuario=request.user, data_criacao__year=2025).delete()
             Notificacao.objects.filter(usuario=request.user, data_criacao__year=2025).delete()
             messages.success(request, 'Dados fictícios de 2025 excluídos com sucesso!')
+            return redirect('core:configuracoes')
+        
+        if 'gerar_notificacoes' in request.POST:
+            # Gerar notificações de teste para o usuário
+            from datetime import datetime, timedelta
+            import random
+            
+            notificacoes_data = [
+                {
+                    'titulo': 'Bem-vindo ao SGFP!',
+                    'mensagem': 'Seu sistema de gestão financeira está funcionando perfeitamente.',
+                    'tipo': 'info',
+                    'link': '/'
+                },
+                {
+                    'titulo': 'Dashboard clássico ativo',
+                    'mensagem': 'O dashboard clássico está totalmente integrado com a base de dados.',
+                    'tipo': 'success',
+                    'link': '/?type=classico'
+                },
+                {
+                    'titulo': 'Dados carregados',
+                    'mensagem': f'Foram encontradas {Receita.objects.filter(usuario=request.user).count()} receitas e {Despesa.objects.filter(usuario=request.user).count()} despesas no sistema.',
+                    'tipo': 'info',
+                    'link': '/'
+                },
+                {
+                    'titulo': 'Sistema atualizado',
+                    'mensagem': 'Todas as funcionalidades estão funcionando corretamente.',
+                    'tipo': 'success',
+                    'link': '/'
+                },
+                {
+                    'titulo': 'Configurações salvas',
+                    'mensagem': 'Suas preferências foram salvas com sucesso.',
+                    'tipo': 'info',
+                    'link': '/configuracoes/'
+                }
+            ]
+            
+            notificacoes_criadas = 0
+            for notif_data in notificacoes_data:
+                data_criacao = timezone.now() - timedelta(days=random.randint(0, 7))
+                Notificacao.objects.create(
+                    usuario=request.user,
+                    titulo=notif_data['titulo'],
+                    mensagem=notif_data['mensagem'],
+                    tipo=notif_data['tipo'],
+                    link=notif_data['link'],
+                    data_criacao=data_criacao,
+                    lida=random.choice([True, False])
+                )
+                notificacoes_criadas += 1
+            
+            messages.success(request, f'{notificacoes_criadas} notificações de teste criadas com sucesso!')
             return redirect('core:configuracoes')
         
         form = ConfiguracaoForm(request.POST, instance=configuracao)
@@ -1254,7 +1722,12 @@ def excluir_dados_ficticios(request):
         Despesa.objects.filter(usuario=request.user, data__year=2025).delete()
         Transferencia.objects.filter(usuario=request.user, data__year=2025).delete()
         Meta.objects.filter(usuario=request.user, data_inicio__year=2025).delete()
-        Conta.objects.filter(usuario=request.user, data_criacao__year=2025).delete()
+        from core.models import CartaoCredito, Conta
+        contas_2025 = Conta.objects.filter(usuario=request.user, data_criacao__year=2025)
+        # Exclui cartões de crédito vinculados às contas de 2025
+        CartaoCredito.objects.filter(usuario=request.user, conta_pagamento__in=contas_2025).delete()
+        # Agora pode excluir as contas
+        contas_2025.delete()
         Categoria.objects.filter(usuario=request.user, data_criacao__year=2025).delete()
         Notificacao.objects.filter(usuario=request.user, data_criacao__year=2025).delete()
         messages.success(request, 'Dados fictícios de 2025 excluídos com sucesso!')
@@ -1292,8 +1765,12 @@ def importar_banco_completo(request):
 
 @login_required
 def cartao_credito_list(request):
-    cartoes = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
-    return render(request, 'core/cartoes_credito_list.html', {'cartoes': cartoes})
+    cartoes_ativos = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    cartoes_inativos = CartaoCredito.objects.filter(usuario=request.user, ativo=False)
+    return render(request, 'core/cartoes_credito_list.html', {
+        'cartoes_ativos': cartoes_ativos,
+        'cartoes_inativos': cartoes_inativos
+    })
 
 @login_required
 def cartao_credito_create(request):
@@ -1326,8 +1803,245 @@ def cartao_credito_update(request, pk):
 def cartao_credito_delete(request, pk):
     cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
     if request.method == 'POST':
-        cartao.ativo = False
-        cartao.save()
-        messages.success(request, 'Cartão removido com sucesso!')
+        cartao.delete()
+        messages.success(request, 'Cartão excluído do sistema com sucesso!')
         return redirect('core:cartao_credito_list')
     return render(request, 'core/cartao_credito_confirmar_remocao.html', {'cartao': cartao})
+
+@login_required
+def cartao_detalhe(request, pk):
+    cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
+    despesas = Despesa.objects.filter(cartao=cartao, ativo=True).order_by('-data')
+    if request.method == 'POST':
+        form = CartaoCreditoForm(request.POST, instance=cartao, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cartão atualizado com sucesso!')
+            return redirect('core:cartao_detalhe', pk=cartao.pk)
+    else:
+        form = CartaoCreditoForm(instance=cartao, user=request.user)
+    context = {
+        'cartao': cartao,
+        'form': form,
+        'despesas': despesas,
+        'limite_total': cartao.limite_total,
+        'limite_utilizado': cartao.limite_utilizado,
+        'limite_disponivel': cartao.limite_disponivel,
+        'data_vencimento': cartao.data_vencimento,
+        'data_fechamento': cartao.data_fechamento,
+    }
+    return render(request, 'core/cartao_credito_detail.html', context)
+
+@login_required
+def cartoes_dashboard(request):
+    # Aplicar filtros de data se fornecidos
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    
+    # Construir filtros de data para despesas
+    filtros_despesa = {'ativo': True}
+    if data_inicio:
+        filtros_despesa['data__gte'] = data_inicio
+    if data_fim:
+        filtros_despesa['data__lte'] = data_fim
+    
+    cartoes = CartaoCredito.objects.filter(usuario=request.user, ativo=True)
+    cartao_id = request.GET.get('cartao')
+    cartao_selecionado = None
+    faturas = []
+    hoje = timezone.now().date()
+    
+    if cartao_id:
+        try:
+            cartao_selecionado = cartoes.get(pk=cartao_id)
+        except CartaoCredito.DoesNotExist:
+            cartao_selecionado = None
+    
+    # Calcular dados de evolução temporal dos gastos (últimos 12 meses)
+    evolucao_labels = []
+    evolucao_valores = []
+    meses_ptbr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    
+    for i in range(11, -1, -1):
+        data = hoje - timedelta(days=30*i)
+        mes = data.month
+        ano = data.year
+        
+        # Calcular gastos do mês
+        if cartao_selecionado:
+            gastos_mes = Despesa.objects.filter(
+                cartao=cartao_selecionado,
+                data__month=mes,
+                data__year=ano,
+                **filtros_despesa
+            ).aggregate(total=Sum('valor'))['total'] or 0
+        else:
+            gastos_mes = Despesa.objects.filter(
+                cartao__in=cartoes,
+                data__month=mes,
+                data__year=ano,
+                **filtros_despesa
+            ).aggregate(total=Sum('valor'))['total'] or 0
+        
+        evolucao_labels.append(f'{meses_ptbr[mes-1]}/{ano}')
+        evolucao_valores.append(float(gastos_mes))
+    
+    if cartao_selecionado:
+        despesas_cartoes = Despesa.objects.filter(cartao=cartao_selecionado, **filtros_despesa)
+        total_limite = cartao_selecionado.limite_total
+        total_utilizado = cartao_selecionado.limite_utilizado
+        total_disponivel = total_limite - total_utilizado
+        labels = [cartao_selecionado.nome]
+        gastos = [float(cartao_selecionado.limite_utilizado)]
+        
+        # Buscar faturas do cartão selecionado
+        faturas = Fatura.objects.filter(cartao=cartao_selecionado).order_by('ano', 'mes')
+        
+        # Dados para gráfico de barras das faturas (12 meses)
+        from datetime import date
+        hoje = timezone.now().date()
+        meses_labels = []
+        meses_valores = []
+        meses_status = []
+        meses_cores = []
+        meses_ano = []
+        # Gera lista dos últimos 12 meses (do mês atual para trás)
+        meses_ptbr = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+        for i in range(11, -1, -1):
+            ano = hoje.year if hoje.month - i > 0 else hoje.year - 1
+            mes = (hoje.month - i - 1) % 12 + 1
+            meses_ano.append((mes, ano))
+        for mes, ano in meses_ano:
+            fatura = faturas.filter(mes=mes, ano=ano).first()
+            if fatura:
+                meses_labels.append(f'{meses_ptbr[mes-1]}/{fatura.ano}')
+                meses_valores.append(float(fatura.valor_calculado()))
+                status = fatura.status
+                meses_status.append(status)
+                if status == 'Paga':
+                    meses_cores.append('#28a745')
+                elif status == 'Vencida':
+                    meses_cores.append('#dc3545')
+                else:
+                    meses_cores.append('#ffc107')
+            else:
+                meses_labels.append(f'{meses_ptbr[mes-1]}/{ano}')
+                meses_valores.append(0)
+                meses_status.append('Sem Fatura')
+                meses_cores.append('#b0b0b0')
+        grafico_labels = meses_labels
+        grafico_valores = meses_valores
+        grafico_status = meses_status
+        grafico_cores = meses_cores
+        # Separar faturas por status para o template
+        faturas_em_aberto = [f for f in faturas if not f.paga and f.vencimento >= hoje]
+        faturas_pagas = [f for f in faturas if f.paga]
+        faturas_vencidas = [f for f in faturas if not f.paga and f.vencimento < hoje]
+        faturas_futuras = [f for f in faturas if not f.paga and f.vencimento > hoje and f not in faturas_em_aberto]
+    
+    else:
+        despesas_cartoes = Despesa.objects.filter(cartao__in=cartoes, **filtros_despesa)
+        total_limite = cartoes.aggregate(total=Sum('limite_total'))['total'] or 0
+        total_utilizado = sum([c.limite_utilizado for c in cartoes])
+        total_disponivel = total_limite - total_utilizado
+        labels = [c.nome for c in cartoes]
+        gastos = [float(c.limite_utilizado) for c in cartoes]
+        faturas = []
+        faturas_em_aberto = []
+        faturas_pagas = []
+        faturas_futuras = []
+        faturas_vencidas = []
+        grafico_labels = []
+        grafico_valores = []
+        grafico_status = []
+        grafico_cores = []
+    
+    context = {
+        'cartoes': cartoes,
+        'cartao_selecionado': cartao_selecionado,
+        'despesas_cartoes': despesas_cartoes,
+        'total_limite': total_limite,
+        'total_utilizado': total_utilizado,
+        'total_disponivel': total_disponivel,
+        'labels': labels,
+        'gastos': gastos,
+        'evolucao_labels': evolucao_labels,
+        'evolucao_valores': evolucao_valores,
+        'faturas': faturas,
+        'faturas_em_aberto': faturas_em_aberto,
+        'faturas_pagas': faturas_pagas,
+        'faturas_futuras': faturas_futuras,
+        'faturas_vencidas': faturas_vencidas,
+        'grafico_labels': grafico_labels,
+        'grafico_valores': grafico_valores,
+        'grafico_status': grafico_status,
+        'grafico_cores': grafico_cores,
+        'today': hoje,
+    }
+    return render(request, 'core/cartoes_dashboard.html', context)
+
+@login_required
+def cartao_credito_inativar(request, pk):
+    cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        cartao.ativo = False
+        cartao.save()
+        messages.success(request, 'Cartão inativado com sucesso!')
+        return redirect('core:cartao_credito_list')
+    return render(request, 'core/cartao_credito_confirmar_inativacao.html', {'cartao': cartao})
+
+@login_required
+def cartao_credito_reativar(request, pk):
+    cartao = get_object_or_404(CartaoCredito, pk=pk, usuario=request.user)
+    if request.method == 'POST':
+        cartao.ativo = True
+        cartao.save()
+        messages.success(request, 'Cartão reativado com sucesso!')
+        return redirect('core:cartao_credito_list')
+    return render(request, 'core/cartao_credito_confirmar_reativacao.html', {'cartao': cartao})
+
+@login_required
+def pagar_fatura(request, fatura_id):
+    fatura = get_object_or_404(Fatura, pk=fatura_id, cartao__usuario=request.user)
+    fatura.paga = True
+    fatura.data_pagamento = timezone.now().date()
+    fatura.save()
+    return redirect(f'{reverse("core:cartoes_dashboard")}?cartao={fatura.cartao.pk}')
+
+@login_required
+def reabrir_fatura(request, fatura_id):
+    fatura = get_object_or_404(Fatura, pk=fatura_id, cartao__usuario=request.user)
+    fatura.paga = False
+    fatura.data_pagamento = None
+    fatura.save()
+    return redirect(f'{reverse("core:cartoes_dashboard")}?cartao={fatura.cartao.pk}')
+
+@login_required
+def ajustar_fatura(request, fatura_id):
+    fatura = get_object_or_404(Fatura, pk=fatura_id, cartao__usuario=request.user)
+    if request.method == 'POST':
+        valor = request.POST.get('valor')
+        vencimento = request.POST.get('vencimento')
+        if valor:
+            fatura.valor = valor
+        if vencimento:
+            fatura.vencimento = vencimento
+        fatura.ajustada = True
+        fatura.save()
+        return redirect(f'{reverse("core:cartoes_dashboard")}?cartao={fatura.cartao.pk}')
+    return render(request, 'core/ajustar_fatura.html', {'fatura': fatura})
+
+@login_required
+def nova_fatura(request):
+    cartao_id = request.GET.get('cartao')
+    initial = {}
+    if cartao_id:
+        initial['cartao'] = cartao_id
+    if request.method == 'POST':
+        form = FaturaForm(request.POST, user=request.user)
+        if form.is_valid():
+            fatura = form.save()
+            return redirect(f'{reverse("core:cartoes_dashboard")}?cartao={fatura.cartao.pk}')
+    else:
+        form = FaturaForm(user=request.user, initial=initial)
+    return render(request, 'core/nova_fatura.html', {'form': form})

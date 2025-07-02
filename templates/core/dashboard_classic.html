@@ -1,0 +1,736 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load br_filters %}
+
+{% block title %}Dashboard - SGFP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+<style>
+.chart-container {
+    position: relative;
+    height: 220px;
+    margin-bottom: 16px;
+}
+.metric-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+    min-height: 120px;
+    padding: 12px 16px;
+}
+.metric-card h3 {
+    font-size: 1.5rem;
+}
+.card.shadow {
+    margin-bottom: 16px;
+}
+.metric-card.receitas {
+    border-left-color: #28a745;
+}
+.metric-card.despesas {
+    border-left-color: #dc3545;
+}
+.metric-card.saldo {
+    border-left-color: #007bff;
+}
+.metric-card.metas {
+    border-left-color: #ffc107;
+}
+.trend-indicator {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 12px;
+}
+.trend-up {
+    background-color: #d4edda;
+    color: #155724;
+}
+.trend-down {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.trend-stable {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+.credit-card {
+    width: 100%;
+    max-width: 320px;
+    height: 200px;
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    padding: 18px 18px 12px 18px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.credit-card.inter { background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); }
+.credit-card.neon { background: linear-gradient(135deg, #00e1ff 0%, #0077ff 100%); }
+.credit-card.santander { background: linear-gradient(135deg, #e30613 0%, #ff5f6d 100%); }
+.credit-card.trigg { background: linear-gradient(135deg, #00c3ad 0%, #1e2a38 100%); }
+.credit-card.next { background: linear-gradient(135deg, #00ff88 0%, #00c3ad 100%); }
+.credit-card.digio { background: linear-gradient(135deg, #1e2a38 0%, #3a7bd5 100%); }
+.credit-card.hipercard { background: linear-gradient(135deg, #c1000a 0%, #ff5858 100%); }
+.credit-card.pan { background: linear-gradient(135deg, #1e2a38 0%, #00c3ad 100%); }
+.credit-card.pag { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
+.credit-card.meluz { background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%); }
+.credit-card.itaú { background: linear-gradient(135deg, #009ee3 0%, #ff7e5f 100%); }
+.credit-card .card-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.credit-card .left {
+    flex: 1;
+}
+.credit-card .right {
+    text-align: right;
+    min-width: 80px;
+}
+.credit-card .chip {
+    width: 32px;
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+.credit-card .bank-logo {
+    font-size: 1.1rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+.credit-card .card-number {
+    font-size: 1.05rem;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+}
+.credit-card .card-holder {
+    font-size: 0.93rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.credit-card .card-footer {
+    font-size: 0.93rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2px;
+}
+.credit-card .bandeira {
+    height: 22px;
+}
+.credit-card .info-list {
+    font-size: 0.91rem;
+    margin-top: 2px;
+}
+.credit-card .info-list span {
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <p class="text-muted">Bem-vindo, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="atualizarDashboard()">
+                <i class="fas fa-sync-alt me-2"></i>Atualizar
+            </button>
+            <a href="{% url 'core:relatorio_financeiro' %}" class="btn btn-outline-info">
+                <i class="fas fa-chart-bar me-2"></i>Relatórios
+            </a>
+        </div>
+    </div>
+
+    <!-- Métricas Principais -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card shadow metric-card receitas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Receitas (Mês)</h6>
+                            <h3 class="text-success mb-0">{{ receitas_mes|br_currency }}</h3>
+                            <div class="mt-2">
+                                {% if receitas_trend > 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                                </span>
+                                {% elif receitas_trend < 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-up fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ receitas_count }} transações este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card despesas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Despesas (Mês)</h6>
+                            <h3 class="text-danger mb-0">{{ despesas_mes|br_currency }}</h3>
+                            <div class="mt-2">
+                                {% if despesas_trend > 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                                </span>
+                                {% elif despesas_trend < 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ despesas_count }} transações este mês</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card saldo">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Saldo (Mês)</h6>
+                            <h3 class="{% if saldo_mes >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
+                                {{ saldo_mes|br_currency }}
+                            </h3>
+                            <div class="mt-2">
+                                {% if saldo_trend > 0 %}
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-arrow-up me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                                </span>
+                                {% elif saldo_trend < 0 %}
+                                <span class="trend-indicator trend-down">
+                                    <i class="fas fa-arrow-down me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                                </span>
+                                {% else %}
+                                <span class="trend-indicator trend-stable">
+                                    <i class="fas fa-minus me-1"></i>0%
+                                </span>
+                                {% endif %}
+                                <small class="text-muted ms-2">vs mês anterior</small>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-balance-scale fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Receitas - Despesas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow metric-card metas">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted">Metas Ativas</h6>
+                            <h3 class="text-warning mb-0">{{ metas_ativas_count }}</h3>
+                            <div class="mt-2">
+                                <span class="trend-indicator trend-up">
+                                    <i class="fas fa-bullseye me-1"></i>{{ metas_concluidas_count }} concluídas
+                                </span>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-bullseye fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ metas_total_count }} metas no total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartões de Crédito -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Cartões de Crédito
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if cartoes_credito and cartoes_credito|length > 0 %}
+                    <div class="row mb-3">
+                        {% for cartao in cartoes_credito %}
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:cartao_detalhe' cartao.pk %}" style="text-decoration:none;">
+                                {% include 'core/_cartao_credito_card.html' with cartao=cartao limite_total=cartao.limite_total limite_utilizado=cartao.limite_utilizado limite_disponivel=cartao.limite_disponivel user=user %}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Cartões próximos do vencimento -->
+                    {% if cartoes_vencendo %}
+                    <div class="mt-3">
+                        <h6 class="text-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Cartões próximos do vencimento:
+                        </h6>
+                        <div class="row">
+                            {% for cartao in cartoes_vencendo %}
+                            <div class="col-md-4 mb-2">
+                                <div class="alert alert-warning py-2 mb-0">
+                                    <strong>{{ cartao.nome }}</strong><br>
+                                    <small>
+                                        Vence em {{ cartao.data_vencimento|date:"d/m/Y" }}
+                                        {% if cartao.dias_restantes == 0 %}
+                                            <span class="badge bg-danger">Hoje!</span>
+                                        {% elif cartao.dias_restantes == 1 %}
+                                            <span class="badge bg-warning">Amanhã!</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ cartao.dias_restantes }} dias</span>
+                                        {% endif %}
+                                    </small><br>
+                                    <small class="text-muted">Fatura: {{ cartao.valor_fatura|br_currency }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum cartão de crédito cadastrado.</p>
+                        <a href="{% url 'core:cartao_credito_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Novo cartão
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list me-1"></i>Ver todos os cartões
+                        </a>
+                        <a href="{% url 'core:cartao_credito_create' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Novo cartão
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="row mb-4">
+        <!-- Gráfico de Evolução dos Últimos 6 Meses -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Evolução Financeira (Últimos 6 Meses)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartEvolucao"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Despesas por Categoria -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Despesas por Categoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análises Avançadas -->
+    <div class="row mb-4">
+        <!-- Previsão de Gastos -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>Previsão de Gastos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-primary mb-0">{{ previsao_proximo_mes|br_currency }}</h4>
+                            <small class="text-muted">Próximo Mês</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info mb-0">{{ previsao_trimestre|br_currency }}</h4>
+                            <small class="text-muted">Próximo Trimestre</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning mb-0">{{ previsao_ano|br_currency }}</h4>
+                            <small class="text-muted">Próximo Ano</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Baseado em:</strong> Média dos últimos 3 meses + tendência sazonal
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise de Tendências -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trending-up me-2"></i>Análise de Tendências
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center mb-3">
+                                <h6 class="text-success">Receitas</h6>
+                                {% if receitas_tendencia == 'crescendo' %}
+                                <i class="fas fa-arrow-up fa-2x text-success"></i>
+                                <p class="mb-0">Tendência de crescimento</p>
+                                {% elif receitas_tendencia == 'decrescendo' %}
+                                <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                                <p class="mb-0">Tendência de queda</p>
+                                {% else %}
+                                <i class="fas fa-minus fa-2x text-secondary"></i>
+                                <p class="mb-0">Tendência estável</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center mb-3">
+                                <h6 class="text-danger">Despesas</h6>
+                                {% if despesas_tendencia == 'crescendo' %}
+                                <i class="fas fa-arrow-up fa-2x text-danger"></i>
+                                <p class="mb-0">Tendência de crescimento</p>
+                                {% elif despesas_tendencia == 'decrescendo' %}
+                                <i class="fas fa-arrow-down fa-2x text-success"></i>
+                                <p class="mb-0">Tendência de queda</p>
+                                {% else %}
+                                <i class="fas fa-minus fa-2x text-secondary"></i>
+                                <p class="mb-0">Tendência estável</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas e Notificações -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>Alertas e Notificações
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if alertas %}
+                    <div class="list-group list-group-flush">
+                        {% for alerta in alertas %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if alerta.icone %}
+                                        <i class="{{ alerta.icone }} text-{{ alerta.tipo }} me-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-triangle text-{{ alerta.tipo }} me-2"></i>
+                                    {% endif %}
+                                    {% if alerta.link %}
+                                        <a href="{{ alerta.link }}" class="text-decoration-none">{{ alerta.titulo }}</a>
+                                    {% else %}
+                                        {{ alerta.titulo }}
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">{{ alerta.data|timesince }} atrás</small>
+                            </div>
+                            <p class="mb-1">{{ alerta.mensagem }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <p>Nenhum alerta ativo. Suas finanças estão em ordem!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Metas em Destaque -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bullseye me-2"></i>Metas em Destaque
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if metas_destaque %}
+                    <div class="list-group list-group-flush">
+                        {% for meta in metas_destaque %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ meta.titulo }}</h6>
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ meta.percentual }}%"></div>
+                            </div>
+                            <small class="text-muted">
+                                {{ meta.valor_atual|br_currency }} / {{ meta.valor_meta|br_currency }}
+                                ({{ meta.percentual|floatformat:1 }}%)
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-bullseye fa-3x mb-3"></i>
+                        <p>Nenhuma meta ativa</p>
+                        <a href="{% url 'core:meta_create' %}" class="btn btn-sm btn-primary">
+                            Criar Meta
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transações Recentes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Transações Recentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Conta</th>
+                                    <th>Valor</th>
+                                    <th>Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transacao in transacoes_recentes %}
+                                <tr>
+                                    <td>{{ transacao.data|date:"d/m/Y" }}</td>
+                                    <td>{{ transacao.descricao|truncatechars:30 }}</td>
+                                    <td>
+                                        {% if transacao.tipo == 'transferencia' %}
+                                            <span class="badge bg-info">Transferência</span>
+                                        {% elif transacao.categoria %}
+                                            <span class="badge" style="background-color: {{ transacao.categoria.cor|default:'#007bff' }};">
+                                                {{ transacao.categoria.nome }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transacao.tipo == 'transferencia' %}
+                                            {{ transacao.conta.nome }} → {{ transacao.conta_destino.nome }}
+                                        {% else %}
+                                            {{ transacao.conta.nome }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="{% if transacao.tipo == 'receita' %}text-success{% elif transacao.tipo == 'despesa' %}text-danger{% else %}text-info{% endif %}">
+                                        {{ transacao.valor|br_currency }}
+                                    </td>
+                                    <td>
+                                        {% if transacao.tipo == 'receita' %}
+                                        <i class="fas fa-arrow-up text-success"></i>
+                                        {% elif transacao.tipo == 'despesa' %}
+                                        <i class="fas fa-arrow-down text-danger"></i>
+                                        {% else %}
+                                        <i class="fas fa-exchange-alt text-info"></i>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        Nenhuma transação encontrada
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'core:receita_create' %}" class="btn btn-outline-success me-2">
+                            <i class="fas fa-plus me-2"></i>Nova Receita
+                        </a>
+                        <a href="{% url 'core:despesa_create' %}" class="btn btn-outline-danger me-2">
+                            <i class="fas fa-plus me-2"></i>Nova Despesa
+                        </a>
+                        <a href="{% url 'core:transferencia_create' %}" class="btn btn-outline-info">
+                            <i class="fas fa-exchange-alt me-2"></i>Nova Transferência
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+const dadosGraficos = {
+    categorias: {
+        labels: {{ labels_categorias|safe }},
+        dados: {{ dados_categorias|safe }},
+        cores: {{ cores_categorias|safe }}
+    }
+};
+
+const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+new Chart(ctxCategorias, {
+    type: 'doughnut',
+    data: {
+        labels: dadosGraficos.categorias.labels,
+        datasets: [{
+            data: dadosGraficos.categorias.dados,
+            backgroundColor: dadosGraficos.categorias.cores,
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    usePointStyle: true
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentual = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ' + context.parsed.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) + ' (' + percentual + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de Evolução Financeira
+const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+new Chart(ctxEvolucao, {
+    type: 'line',
+    data: {
+        labels: {{ labels_evolucao|safe }},
+        datasets: [
+            {
+                label: 'Receitas',
+                data: {{ dados_evolucao_receitas|safe }},
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40,167,69,0.1)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Despesas',
+                data: {{ dados_evolucao_despesas|safe }},
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220,53,69,0.1)',
+                fill: false,
+                tension: 0.3
+            },
+            {
+                label: 'Saldo',
+                data: {{ dados_evolucao_saldo|safe }},
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0,123,255,0.1)',
+                fill: false,
+                borderDash: [5, 5],
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

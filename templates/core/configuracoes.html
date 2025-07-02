@@ -75,6 +75,72 @@
                             </div>
                         </div>
 
+                        <hr class="my-4">
+
+                        <!-- Configurações do Dashboard -->
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-tachometer-alt me-2"></i>Configurações do Dashboard
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.dashboard_tipo.id_for_label }}" class="form-label">Tipo de Dashboard</label>
+                                    {{ form.dashboard_tipo }}
+                                    <div class="form-text">Escolha entre o dashboard moderno ou clássico</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.dashboard_layout.id_for_label }}" class="form-label">Layout</label>
+                                    {{ form.dashboard_layout }}
+                                    <div class="form-text">Organização dos elementos no dashboard</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.dashboard_tema.id_for_label }}" class="form-label">Tema Visual</label>
+                                    {{ form.dashboard_tema }}
+                                    <div class="form-text">Aparência visual do dashboard</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.dashboard_refresh.id_for_label }}" class="form-label">Refresh Automático</label>
+                                    {{ form.dashboard_refresh }}
+                                    <div class="form-text">Intervalo de atualização em minutos</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.dashboard_animations }}
+                                        <label class="form-check-label" for="{{ form.dashboard_animations.id_for_label }}">
+                                            Animações no Dashboard
+                                        </label>
+                                        <div class="form-text">Ativar efeitos visuais e transições</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.dashboard_dragdrop }}
+                                        <label class="form-check-label" for="{{ form.dashboard_dragdrop.id_for_label }}">
+                                            Drag & Drop
+                                        </label>
+                                        <div class="form-text">Permitir arrastar e reorganizar elementos</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Salvar Configurações
@@ -105,6 +171,16 @@
                         </p>
                         <form method="post" style="display: inline;">
                             {% csrf_token %}
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <label for="data_inicio" class="form-label small">Data Início</label>
+                                    <input type="date" class="form-control form-control-sm" name="data_inicio" id="data_inicio">
+                                </div>
+                                <div class="col-6">
+                                    <label for="data_fim" class="form-label small">Data Fim</label>
+                                    <input type="date" class="form-control form-control-sm" name="data_fim" id="data_fim">
+                                </div>
+                            </div>
                             <button type="submit" name="gerar_dados_ficticios" class="btn btn-warning btn-sm" 
                                     onclick="return confirm('Tem certeza? Isso irá gerar dados fictícios para o seu usuário.')">
                                 <i class="fas fa-magic me-2"></i>Gerar Dados Fictícios
@@ -114,6 +190,25 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm ms-2" onclick="return confirm('Tem certeza que deseja excluir TODOS os dados fictícios de 2025? Esta ação não pode ser desfeita.')">
                                 <i class="fas fa-trash me-2"></i>Excluir Dados Fictícios
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <!-- Geração de Notificações -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-bell me-2"></i>Notificações de Teste
+                        </h6>
+                        <p class="text-muted small">
+                            Gera notificações de teste para verificar o funcionamento do sistema de alertas.
+                        </p>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" name="gerar_notificacoes" class="btn btn-info btn-sm" 
+                                    onclick="return confirm('Tem certeza? Isso irá criar 5 notificações de teste.')">
+                                <i class="fas fa-bell me-2"></i>Gerar Notificações
                             </button>
                         </form>
                     </div>

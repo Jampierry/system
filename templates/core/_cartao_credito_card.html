@@ -1,0 +1,78 @@
+{% load static %}
+{% load br_filters %}
+
+{% comment %}
+Definindo as cores dos bancos diretamente no template para evitar problemas com blocos with aninhados
+{% endcomment %}
+
+<div class="cartao-visual {{ cartao.nome|lower|slugify }}" style="position:relative; border-radius:18px; min-width:260px; max-width:320px; height:180px; width:100%; background: linear-gradient(135deg, 
+    {% if cartao.nome|lower == 'nubank' %}#8A05BE
+    {% elif cartao.nome|lower == 'neon' %}#00E1FF
+    {% elif cartao.nome|lower == 'inter' %}#FF6600
+    {% elif cartao.nome|lower == 'next' %}#00C86F
+    {% elif cartao.nome|lower == 'pan' or cartao.nome|lower == 'banco pan' %}#1A1A1A
+    {% elif cartao.nome|lower == 'original' or cartao.nome|lower == 'banco original' %}#00B488
+    {% elif cartao.nome|lower == 'banco do brasil' or cartao.nome|lower == 'banco brasil' %}#FFCC29
+    {% else %}#232526{% endif %} 0%, #414345 100%); color:#fff; box-shadow:0 2px 8px #0002;">
+    
+    {% if cartao.nome|lower == 'nubank' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/nubank.png' %}" alt="Nubank" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'banco do brasil' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/banco-do-brasil-logo.png' %}" alt="Banco do Brasil" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'banco pan' or cartao.nome|lower == 'pan' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/banco-pan-logo-1-1.png' %}" alt="Banco Pan" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'banco original' or cartao.nome|lower == 'original' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/banco-original-logo.png' %}" alt="Banco Original" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'inter' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/banco-inter-logo-9-1536x390.png' %}" alt="Inter" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'next' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/next-2.png' %}" alt="Next" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% elif cartao.nome|lower == 'neon' %}
+        <img class="banco-logo" src="{% static 'imagens/cartoes/neon.png' %}" alt="Neon" style="position:absolute;top:0px;right:8px;height:60px;width:60px;object-fit:contain;z-index:2;">
+    {% endif %}
+    
+    {% if cartao.bandeira == 'visa' %}
+        <img src="{% static 'imagens/cartoes/visa-logo-2-1.png' %}" alt="Visa" style="position:absolute;bottom:8px;right:12px;height:24px; width:auto; z-index:3;">
+    {% elif cartao.bandeira == 'mastercard' %}
+        <img src="{% static 'imagens/cartoes/mastercard-logo-3-2.png' %}" alt="MasterCard" style="position:absolute;bottom:8px;right:12px;height:24px; width:auto; z-index:3;">
+    {% elif cartao.bandeira == 'elo' %}
+        <img src="{% static 'imagens/cartoes/elo-logo-2-2.png' %}" alt="Elo" style="position:absolute;bottom:8px;right:12px;height:24px; width:auto; z-index:3;">
+    {% endif %}
+    
+    <div style="padding:12px 16px 10px 16px; position:relative; z-index:3;">
+        <div style="font-weight:bold; font-size:1em;">{{ cartao.nome }}</div>
+        <div style="margin:6px 0 0 0; display:flex; align-items:center;">
+            <span style="display:inline-block; width:24px; height:16px; background:#fff2; border-radius:4px; margin-right:6px;"></span>
+            <span style="font-size:1em; letter-spacing:2px;">**** {{ cartao.numero|default:"0000" }}</span>
+        </div>
+        <div style="margin:6px 0 0 0; font-size:0.95em; font-weight:500; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">
+            {% if cartao.titular %}
+                {% if cartao.titular.split|length > 2 %}
+                    {{ cartao.titular.split.0 }}
+                    {% for p in cartao.titular.split|slice:'1:-1' %} {{ p|first }}.{% endfor %}
+                    {{ cartao.titular.split|last }}
+                {% else %}
+                    {{ cartao.titular }}
+                {% endif %}
+            {% elif user.get_full_name %}
+                {% if user.get_full_name.split|length > 2 %}
+                    {{ user.get_full_name.split.0 }}
+                    {% for p in user.get_full_name.split|slice:'1:-1' %} {{ p|first }}.{% endfor %}
+                    {{ user.get_full_name.split|last }}
+                {% else %}
+                    {{ user.get_full_name }}
+                {% endif %}
+            {% else %}
+                {{ user.username }}
+            {% endif %}
+        </div>
+        <div style="margin-top:10px; font-size:0.93em;">
+            <span>Fatura: <span class="fw-bold text-primary" style="color:#00e1ff!important;">{{ cartao.valor_fatura|default:cartao.limite_utilizado|br_currency }}</span></span>
+            <span style="margin-left:8px;">Limite: <span class="fw-bold" style="color:#fff;">{{ limite_total|br_currency }}</span></span>
+            <span style="margin-left:8px;">Utilizado: <span class="fw-bold text-danger">{{ limite_utilizado|br_currency }}</span></span>
+        </div>
+        <div style="margin-top:2px; font-size:0.93em;">
+            Saldo: <span class="fw-bold text-success">{{ limite_disponivel|br_currency }}</span>
+        </div>
+    </div>
+</div> 

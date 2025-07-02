@@ -81,4 +81,12 @@ urlpatterns = [
     path('cartoes/novo/', views.cartao_credito_create, name='cartao_credito_create'),
     path('cartoes/<uuid:pk>/editar/', views.cartao_credito_update, name='cartao_credito_update'),
     path('cartoes/<uuid:pk>/remover/', views.cartao_credito_delete, name='cartao_credito_delete'),
+    path('cartoes/<uuid:pk>/inativar/', views.cartao_credito_inativar, name='cartao_credito_inativar'),
+    path('cartoes/<uuid:pk>/reativar/', views.cartao_credito_reativar, name='cartao_credito_reativar'),
+    path('cartao/<uuid:pk>/', views.cartao_detalhe, name='cartao_detalhe'),
+    path('cartoes-dashboard/', views.cartoes_dashboard, name='cartoes_dashboard'),
+    path('fatura/<int:fatura_id>/pagar/', views.pagar_fatura, name='pagar_fatura'),
+    path('fatura/<int:fatura_id>/reabrir/', views.reabrir_fatura, name='reabrir_fatura'),
+    path('fatura/<int:fatura_id>/ajustar/', views.ajustar_fatura, name='ajustar_fatura'),
+    path('fatura/nova/', views.nova_fatura, name='nova_fatura'),
 ] 

@@ -15,6 +15,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{% static 'core/css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'core/css/dashboard-themes.css' %}" rel="stylesheet">
     <style>
         /* Tema Dark Colorido e Moderno */
         .dark-theme {
@@ -348,6 +349,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {% if 'cartao' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:cartoes_dashboard' %}">
+                    <i class="fas fa-credit-card"></i> <span class="sidebar-label">Cartões</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {% if 'meta' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'core:meta_list' %}">
                     <i class="fas fa-bullseye"></i> <span class="sidebar-label">Metas</span>
                 </a>
@@ -363,9 +369,12 @@
                 </a>
             </li>
             <li class="nav-item mt-3">
-                <a class="nav-link" href="{% url 'logout' %}">
-                    <i class="fas fa-sign-out-alt"></i> <span class="sidebar-label">Sair</span>
-                </a>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link p-0" style="color:inherit;text-align:left;width:100%;">
+                        <i class="fas fa-sign-out-alt"></i> <span class="sidebar-label">Sair</span>
+                    </button>
+                </form>
             </li>
         </ul>
     </nav>
@@ -414,9 +423,12 @@
                                 <i class="fas fa-cog me-2"></i>Configurações
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Sair
-                            </a>
+                            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item" style="color:inherit;text-align:left;width:100%;">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -558,7 +570,7 @@
                 });
         }
         
-        // Carregar notificações ao carregar a página
+        // Carregar notificações em todas as páginas autenticadas
         if (document.getElementById('notifications-list')) {
             carregarNotificacoes();
             carregarContadorNotificacoes();

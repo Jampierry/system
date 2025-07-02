@@ -6,533 +6,510 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack.min.css">
 <style>
-.chart-container {
-    position: relative;
-    height: 220px;
+.dashboard-grid {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 10px;
+}
+body.dark-mode .dashboard-grid {
+    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+}
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.dashboard-header {
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    padding: 16px 20px;
     margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+body.dark-mode .dashboard-header {
+    background: rgba(34,34,34,0.97);
+    color: #f1f1f1;
+}
+.dashboard-header h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin: 0;
+    font-size: 2rem;
+}
+body.dark-mode .dashboard-header h1 {
+    color: #f1f1f1;
+}
+.dashboard-header .user-info {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+}
+body.dark-mode .dashboard-header .user-info {
+    color: #b2bec3;
+}
+.dashboard-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.dashboard-controls .btn {
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-weight: 500;
+    font-size: 1rem;
+}
+.grid-stack {
+    background: transparent;
+}
+.grid-stack-item {
+    border-radius: 10px;
+    overflow: hidden;
+}
+.grid-stack-item-content {
+    background: rgba(255,255,255,0.97);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.2s;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+body.dark-mode .grid-stack-item-content {
+    background: rgba(34,34,34,0.97);
+    color: #f1f1f1;
+    border: 1px solid #222;
 }
 .metric-card {
-    border-left: 4px solid;
-    transition: transform 0.2s;
-    min-height: 120px;
-    padding: 12px 16px;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
 }
-.metric-card h3 {
-    font-size: 1.5rem;
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
-.card.shadow {
-    margin-bottom: 16px;
+.metric-title {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
 }
-.metric-card.receitas {
-    border-left-color: #28a745;
+body.dark-mode .metric-title {
+    color: #b2bec3;
 }
-.metric-card.despesas {
-    border-left-color: #dc3545;
+.metric-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
 }
-.metric-card.saldo {
-    border-left-color: #007bff;
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
 }
-.metric-card.metas {
-    border-left-color: #ffc107;
+.metric-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
 }
 .trend-indicator {
-    font-size: 0.8rem;
     padding: 2px 6px;
-    border-radius: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.65rem;
 }
 .trend-up {
-    background-color: #d4edda;
-    color: #155724;
+    background: linear-gradient(45deg, #00b894, #00cec9);
+    color: white;
 }
 .trend-down {
-    background-color: #f8d7da;
-    color: #721c24;
+    background: linear-gradient(45deg, #e17055, #d63031);
+    color: white;
 }
 .trend-stable {
-    background-color: #e2e3e5;
-    color: #383d41;
+    background: linear-gradient(45deg, #636e72, #b2bec3);
+    color: white;
+}
+.chart-container {
+    position: relative;
+    height: 100%;
+    min-height: 200px;
+    width: 100%;
+}
+.chart-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    text-align: center;
+}
+body.dark-mode .chart-title {
+    color: #f1f1f1;
+}
+.alert-card {
+    background: linear-gradient(45deg, #ff7675, #fd79a8);
+    color: white;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+body.dark-mode .alert-card {
+    background: linear-gradient(45deg, #b31217, #2c5364);
+    color: #fff;
+}
+.alert-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.alert-message {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f2f6;
+    font-size: 0.8rem;
+}
+body.dark-mode .transaction-item {
+    border-bottom: 1px solid #333;
+}
+.transaction-item:last-child {
+    border-bottom: none;
+}
+.transaction-info {
+    flex: 1;
+}
+.transaction-desc {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+body.dark-mode .transaction-desc {
+    color: #f1f1f1;
+}
+.transaction-meta {
+    color: #7f8c8d;
+    font-size: 0.7rem;
+}
+body.dark-mode .transaction-meta {
+    color: #b2bec3;
+}
+.transaction-value {
+    font-weight: 700;
+    text-align: right;
+}
+.meta-progress {
+    background: #ecf0f1;
+    border-radius: 10px;
+    height: 8px;
+    margin: 4px 0;
+    overflow: hidden;
+}
+body.dark-mode .meta-progress {
+    background: #333;
+}
+.meta-progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+.progress-success { background: linear-gradient(45deg, #00b894, #00cec9); }
+.progress-warning { background: linear-gradient(45deg, #fdcb6e, #e17055); }
+.progress-danger { background: linear-gradient(45deg, #e17055, #d63031); }
+@media (max-width: 900px) {
+    .dashboard-header h1 { font-size: 1.3rem; }
+    .metric-value { font-size: 1rem; }
+    .grid-stack-item-content { padding: 8px; }
+    .metric-title { font-size: 0.75rem; }
+    .metric-icon { width: 24px; height: 24px; font-size: 0.8rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0">Dashboard</h1>
-            <p class="text-muted">Bem-vindo, {{ user.get_full_name|default:user.username }}!</p>
-        </div>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-primary" onclick="atualizarDashboard()">
-                <i class="fas fa-sync-alt me-2"></i>Atualizar
-            </button>
-            <a href="{% url 'core:relatorio_financeiro' %}" class="btn btn-outline-info">
-                <i class="fas fa-chart-bar me-2"></i>Relatórios
-            </a>
-        </div>
-    </div>
-
-    <!-- Métricas Principais -->
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card shadow metric-card receitas">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Receitas (Mês)</h6>
-                            <h3 class="text-success mb-0">{{ receitas_mes|br_currency }}</h3>
-                            <div class="mt-2">
-                                {% if receitas_trend > 0 %}
-                                <span class="trend-indicator trend-up">
-                                    <i class="fas fa-arrow-up me-1"></i>{{ receitas_trend|floatformat:1 }}%
-                                </span>
-                                {% elif receitas_trend < 0 %}
-                                <span class="trend-indicator trend-down">
-                                    <i class="fas fa-arrow-down me-1"></i>{{ receitas_trend|floatformat:1 }}%
-                                </span>
-                                {% else %}
-                                <span class="trend-indicator trend-stable">
-                                    <i class="fas fa-minus me-1"></i>0%
-                                </span>
-                                {% endif %}
-                                <small class="text-muted ms-2">vs mês anterior</small>
-                            </div>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-arrow-up fa-2x text-success"></i>
-                        </div>
-                    </div>
-                    <small class="text-muted">{{ receitas_count }} transações este mês</small>
-                </div>
+<div class="dashboard-grid{% if tema_escuro %} dark-mode{% endif %}">
+    <div class="dashboard-container">
+        <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1>Dashboard Financeiro</h1>
+                <div class="user-info">Bem-vindo, {{ user.get_full_name|default:user.username }}!</div>
+            </div>
+            <div class="dashboard-controls">
+                <button type="button" class="btn btn-primary" onclick="atualizarDashboard()">
+                    <i class="fas fa-sync-alt me-2"></i>Atualizar
+                </button>
+                <a href="{% url 'core:relatorio_financeiro' %}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-bar me-2"></i>Relatórios
+                </a>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card shadow metric-card despesas">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Despesas (Mês)</h6>
-                            <h3 class="text-danger mb-0">{{ despesas_mes|br_currency }}</h3>
-                            <div class="mt-2">
-                                {% if despesas_trend > 0 %}
-                                <span class="trend-indicator trend-down">
-                                    <i class="fas fa-arrow-up me-1"></i>{{ despesas_trend|floatformat:1 }}%
-                                </span>
-                                {% elif despesas_trend < 0 %}
-                                <span class="trend-indicator trend-up">
-                                    <i class="fas fa-arrow-down me-1"></i>{{ despesas_trend|floatformat:1 }}%
-                                </span>
-                                {% else %}
-                                <span class="trend-indicator trend-stable">
-                                    <i class="fas fa-minus me-1"></i>0%
-                                </span>
-                                {% endif %}
-                                <small class="text-muted ms-2">vs mês anterior</small>
+        
+        <div class="grid-stack" id="dashboardGrid">
+            <!-- Métricas Principais -->
+            <div class="grid-stack-item" gs-w="3" gs-h="2">
+                <div class="grid-stack-item-content">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Receitas (Mês)</div>
+                            <div class="metric-icon" style="background: linear-gradient(45deg, #00b894, #00cec9); color: white;">
+                                <i class="fas fa-arrow-up"></i>
                             </div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                        <div class="metric-value text-success">{{ receitas_mes|br_currency }}</div>
+                        <div class="metric-trend">
+                            {% if receitas_trend > 0 %}
+                            <span class="trend-indicator trend-up">
+                                <i class="fas fa-arrow-up me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                            </span>
+                            {% elif receitas_trend < 0 %}
+                            <span class="trend-indicator trend-down">
+                                <i class="fas fa-arrow-down me-1"></i>{{ receitas_trend|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="trend-indicator trend-stable">
+                                <i class="fas fa-minus me-1"></i>0%
+                            </span>
+                            {% endif %}
+                            <small class="text-muted ms-2">vs mês anterior</small>
                         </div>
+                        <small class="text-muted">{{ receitas_count }} transações este mês</small>
                     </div>
-                    <small class="text-muted">{{ despesas_count }} transações este mês</small>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow metric-card saldo">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Saldo (Mês)</h6>
-                            <h3 class="{% if saldo_mes >= 0 %}text-primary{% else %}text-danger{% endif %} mb-0">
-                                {{ saldo_mes|br_currency }}
-                            </h3>
-                            <div class="mt-2">
-                                {% if saldo_trend > 0 %}
-                                <span class="trend-indicator trend-up">
-                                    <i class="fas fa-arrow-up me-1"></i>{{ saldo_trend|floatformat:1 }}%
-                                </span>
-                                {% elif saldo_trend < 0 %}
-                                <span class="trend-indicator trend-down">
-                                    <i class="fas fa-arrow-down me-1"></i>{{ saldo_trend|floatformat:1 }}%
-                                </span>
-                                {% else %}
-                                <span class="trend-indicator trend-stable">
-                                    <i class="fas fa-minus me-1"></i>0%
-                                </span>
-                                {% endif %}
-                                <small class="text-muted ms-2">vs mês anterior</small>
+            
+            <div class="grid-stack-item" gs-w="3" gs-h="2">
+                <div class="grid-stack-item-content">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Despesas (Mês)</div>
+                            <div class="metric-icon" style="background: linear-gradient(45deg, #e17055, #d63031); color: white;">
+                                <i class="fas fa-arrow-down"></i>
                             </div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-balance-scale fa-2x text-primary"></i>
+                        <div class="metric-value text-danger">{{ despesas_mes|br_currency }}</div>
+                        <div class="metric-trend">
+                            {% if despesas_trend > 0 %}
+                            <span class="trend-indicator trend-down">
+                                <i class="fas fa-arrow-up me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                            </span>
+                            {% elif despesas_trend < 0 %}
+                            <span class="trend-indicator trend-up">
+                                <i class="fas fa-arrow-down me-1"></i>{{ despesas_trend|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="trend-indicator trend-stable">
+                                <i class="fas fa-minus me-1"></i>0%
+                            </span>
+                            {% endif %}
+                            <small class="text-muted ms-2">vs mês anterior</small>
                         </div>
+                        <small class="text-muted">{{ despesas_count }} transações este mês</small>
                     </div>
-                    <small class="text-muted">Receitas - Despesas</small>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow metric-card metas">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h6 class="text-muted">Metas Ativas</h6>
-                            <h3 class="text-warning mb-0">{{ metas_ativas_count }}</h3>
-                            <div class="mt-2">
-                                <span class="trend-indicator trend-up">
-                                    <i class="fas fa-bullseye me-1"></i>{{ metas_concluidas_count }} concluídas
-                                </span>
+            
+            <div class="grid-stack-item" gs-w="3" gs-h="2">
+                <div class="grid-stack-item-content">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Saldo (Mês)</div>
+                            <div class="metric-icon" style="background: linear-gradient(45deg, #0984e3, #74b9ff); color: white;">
+                                <i class="fas fa-balance-scale"></i>
                             </div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-bullseye fa-2x text-warning"></i>
+                        <div class="metric-value {% if saldo_mes >= 0 %}text-primary{% else %}text-danger{% endif %}">
+                            {{ saldo_mes|br_currency }}
                         </div>
+                        <div class="metric-trend">
+                            {% if saldo_trend > 0 %}
+                            <span class="trend-indicator trend-up">
+                                <i class="fas fa-arrow-up me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                            </span>
+                            {% elif saldo_trend < 0 %}
+                            <span class="trend-indicator trend-down">
+                                <i class="fas fa-arrow-down me-1"></i>{{ saldo_trend|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="trend-indicator trend-stable">
+                                <i class="fas fa-minus me-1"></i>0%
+                            </span>
+                            {% endif %}
+                            <small class="text-muted ms-2">vs mês anterior</small>
+                        </div>
+                        <small class="text-muted">Receitas - Despesas</small>
                     </div>
-                    <small class="text-muted">{{ metas_total_count }} metas no total</small>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Cartões de Crédito -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-credit-card me-2"></i>Cartões de Crédito
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if cartoes_credito and cartoes_credito|length > 0 %}
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h6 class="text-muted">Limite Total</h6>
-                                <h4 class="text-primary mb-0">{{ total_limite_cartoes|br_currency }}</h4>
+            
+            <div class="grid-stack-item" gs-w="3" gs-h="2">
+                <div class="grid-stack-item-content">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Metas Ativas</div>
+                            <div class="metric-icon" style="background: linear-gradient(45deg, #fdcb6e, #e17055); color: white;">
+                                <i class="fas fa-bullseye"></i>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h6 class="text-muted">Utilizado</h6>
-                                <h4 class="text-danger mb-0">{{ total_utilizado_cartoes|br_currency }}</h4>
-                                <small class="text-muted">
-                                    {% if total_limite_cartoes > 0 %}
-                                        {{ percentual_utilizacao|floatformat:1 }}%
-                                    {% else %}
-                                        0%
-                                    {% endif %}
-                                </small>
-                            </div>
+                        <div class="metric-value text-warning">{{ metas_ativas_count }}</div>
+                        <div class="metric-trend">
+                            <span class="trend-indicator trend-up">
+                                <i class="fas fa-bullseye me-1"></i>{{ metas_concluidas_count }} concluídas
+                            </span>
                         </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h6 class="text-muted">Disponível</h6>
-                                <h4 class="text-success mb-0">{{ total_disponivel_cartoes|br_currency }}</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h6 class="text-muted">Despesas (Mês)</h6>
-                                <h4 class="text-info mb-0">{{ despesas_cartao_mes|br_currency }}</h4>
-                            </div>
-                        </div>
+                        <small class="text-muted">{{ metas_total_count }} metas no total</small>
                     </div>
-                    
-                    <!-- Cartões próximos do vencimento -->
-                    {% if cartoes_vencendo %}
-                    <div class="mt-3">
-                        <h6 class="text-warning">
-                            <i class="fas fa-exclamation-triangle me-1"></i>Cartões próximos do vencimento:
-                        </h6>
-                        <div class="row">
-                            {% for cartao in cartoes_vencendo %}
-                            <div class="col-md-4 mb-2">
-                                <div class="alert alert-warning py-2 mb-0">
-                                    <strong>{{ cartao.nome }}</strong><br>
-                                    <small>Vence em {{ cartao.data_vencimento|date:"d/m/Y" }}</small>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Evolução -->
+            <div class="grid-stack-item" gs-w="6" gs-h="4">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Evolução Financeira (Últimos 6 meses)</div>
+                    <div class="chart-container">
+                        <canvas id="evolucaoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Categorias -->
+            <div class="grid-stack-item" gs-w="6" gs-h="4">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Despesas por Categoria (Mês Atual)</div>
+                    <div class="chart-container">
+                        <canvas id="categoriasChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alertas -->
+            <div class="grid-stack-item" gs-w="3" gs-h="4">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Alertas e Notificações</div>
+                    <div style="overflow-y: auto; height: calc(100% - 40px);">
+                        {% if alertas %}
+                            {% for alerta in alertas %}
+                            <div class="alert-card">
+                                <div class="alert-title">{{ alerta.titulo }}</div>
+                                <div class="alert-message">{{ alerta.mensagem }}</div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted mt-3">
+                                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                <p>Nenhum alerta pendente</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metas em Destaque -->
+            <div class="grid-stack-item" gs-w="3" gs-h="4">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Metas em Destaque</div>
+                    <div style="overflow-y: auto; height: calc(100% - 40px);">
+                        {% if metas_destaque %}
+                            {% for meta in metas_destaque %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="text-sm">{{ meta.titulo }}</strong>
+                                    <span class="text-sm">{{ meta.percentual_concluido|floatformat:1 }}%</span>
+                                </div>
+                                <div class="meta-progress">
+                                    <div class="meta-progress-bar {% if meta.percentual_concluido >= 80 %}progress-success{% elif meta.percentual_concluido >= 50 %}progress-warning{% else %}progress-danger{% endif %}" 
+                                         style="width: {{ meta.percentual_concluido }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ meta.valor_atual|br_currency }} / {{ meta.valor_meta|br_currency }}</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted mt-3">
+                                <i class="fas fa-bullseye fa-2x mb-2"></i>
+                                <p>Nenhuma meta ativa</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transações Recentes -->
+            <div class="grid-stack-item" gs-w="6" gs-h="4">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Transações Recentes</div>
+                    <div style="overflow-y: auto; height: calc(100% - 40px);">
+                        {% if transacoes_recentes %}
+                            {% for transacao in transacoes_recentes %}
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <div class="transaction-desc">{{ transacao.descricao }}</div>
+                                    <div class="transaction-meta">
+                                        {{ transacao.data|date:"d/m/Y" }} • {{ transacao.categoria.nome }}
+                                    </div>
+                                </div>
+                                <div class="transaction-value {% if transacao.tipo == 'receita' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ transacao.valor|br_currency }}
                                 </div>
                             </div>
                             {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Nenhum cartão de crédito cadastrado.</p>
-                        <a href="{% url 'core:cartao_credito_create' %}" class="btn btn-success">
-                            <i class="fas fa-plus me-2"></i>Novo cartão
-                        </a>
-                    </div>
-                    {% endif %}
-                    <div class="mt-3">
-                        <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-list me-1"></i>Ver todos os cartões
-                        </a>
-                        <a href="{% url 'core:cartao_credito_create' %}" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus me-1"></i>Novo cartão
-                        </a>
+                        {% else %}
+                            <div class="text-center text-muted mt-3">
+                                <i class="fas fa-receipt fa-2x mb-2"></i>
+                                <p>Nenhuma transação recente</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Gráficos Principais -->
-    <div class="row mb-4">
-        <!-- Gráfico de Evolução dos Últimos 6 Meses -->
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Evolução Financeira (Últimos 6 Meses)
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="chartEvolucao"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gráfico de Despesas por Categoria -->
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Despesas por Categoria
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="chartCategorias"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Análises Avançadas -->
-    <div class="row mb-4">
-        <!-- Previsão de Gastos -->
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-crystal-ball me-2"></i>Previsão de Gastos
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <h4 class="text-primary mb-0">{{ previsao_proximo_mes|br_currency }}</h4>
-                            <small class="text-muted">Próximo Mês</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-info mb-0">{{ previsao_trimestre|br_currency }}</h4>
-                            <small class="text-muted">Próximo Trimestre</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-warning mb-0">{{ previsao_ano|br_currency }}</h4>
-                            <small class="text-muted">Próximo Ano</small>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Baseado em:</strong> Média dos últimos 3 meses + tendência sazonal
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Análise de Tendências -->
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-trending-up me-2"></i>Análise de Tendências
-                    </h5>
-                </div>
-                <div class="card-body">
+            
+            <!-- Cartões de Crédito -->
+            <div class="grid-stack-item" gs-w="6" gs-h="3">
+                <div class="grid-stack-item-content">
+                    <div class="chart-title">Cartões de Crédito</div>
                     <div class="row">
-                        <div class="col-6">
-                            <div class="text-center mb-3">
-                                <h6 class="text-success">Receitas</h6>
-                                {% if receitas_tendencia == 'crescendo' %}
-                                <i class="fas fa-arrow-up fa-2x text-success"></i>
-                                <p class="mb-0">Tendência de crescimento</p>
-                                {% elif receitas_tendencia == 'decrescendo' %}
-                                <i class="fas fa-arrow-down fa-2x text-danger"></i>
-                                <p class="mb-0">Tendência de queda</p>
-                                {% else %}
-                                <i class="fas fa-minus fa-2x text-secondary"></i>
-                                <p class="mb-0">Tendência estável</p>
-                                {% endif %}
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="metric-value text-primary">{{ total_limite_cartoes|br_currency }}</div>
+                                <small class="text-muted">Limite Total</small>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="text-center mb-3">
-                                <h6 class="text-danger">Despesas</h6>
-                                {% if despesas_tendencia == 'crescendo' %}
-                                <i class="fas fa-arrow-up fa-2x text-danger"></i>
-                                <p class="mb-0">Tendência de crescimento</p>
-                                {% elif despesas_tendencia == 'decrescendo' %}
-                                <i class="fas fa-arrow-down fa-2x text-success"></i>
-                                <p class="mb-0">Tendência de queda</p>
-                                {% else %}
-                                <i class="fas fa-minus fa-2x text-secondary"></i>
-                                <p class="mb-0">Tendência estável</p>
-                                {% endif %}
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="metric-value text-warning">{{ total_utilizado_cartoes|br_currency }}</div>
+                                <small class="text-muted">Utilizado</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="metric-value text-success">{{ total_disponivel_cartoes|br_currency }}</div>
+                                <small class="text-muted">Disponível</small>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alertas e Notificações -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bell me-2"></i>Alertas e Notificações
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if alertas %}
-                    <div class="list-group list-group-flush">
-                        {% for alerta in alertas %}
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">
-                                    <i class="fas fa-exclamation-triangle text-{{ alerta.tipo }} me-2"></i>
-                                    {{ alerta.titulo }}
-                                </h6>
-                                <small class="text-muted">{{ alerta.data|timesince }} atrás</small>
-                            </div>
-                            <p class="mb-1">{{ alerta.mensagem }}</p>
-                        </div>
-                        {% endfor %}
+                    <div class="progress mt-2">
+                        <div class="progress-bar bg-warning" style="width: {{ percentual_utilizacao }}%"></div>
                     </div>
-                    {% else %}
-                    <div class="text-center text-muted">
-                        <i class="fas fa-check-circle fa-3x mb-3"></i>
-                        <p>Nenhum alerta ativo. Suas finanças estão em ordem!</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Metas em Destaque -->
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bullseye me-2"></i>Metas em Destaque
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if metas_destaque %}
-                    <div class="list-group list-group-flush">
-                        {% for meta in metas_destaque %}
-                        <div class="list-group-item">
-                            <h6 class="mb-1">{{ meta.titulo }}</h6>
-                            <div class="progress mb-2" style="height: 8px;">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: {{ meta.percentual }}%"></div>
-                            </div>
-                            <small class="text-muted">
-                                {{ meta.valor_atual|br_currency }} / {{ meta.valor_meta|br_currency }}
-                                ({{ meta.percentual|floatformat:1 }}%)
-                            </small>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="text-center text-muted">
-                        <i class="fas fa-bullseye fa-3x mb-3"></i>
-                        <p>Nenhuma meta ativa</p>
-                        <a href="{% url 'core:meta_create' %}" class="btn btn-sm btn-primary">
-                            Criar Meta
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Transações Recentes -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-clock me-2"></i>Transações Recentes
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Descrição</th>
-                                    <th>Categoria</th>
-                                    <th>Conta</th>
-                                    <th>Valor</th>
-                                    <th>Tipo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for transacao in transacoes_recentes %}
-                                <tr>
-                                    <td>{{ transacao.data|date:"d/m/Y" }}</td>
-                                    <td>{{ transacao.descricao|truncatechars:30 }}</td>
-                                    <td>
-                                        <span class="badge" style="background-color: {{ transacao.categoria.cor|default:'#007bff' }};">
-                                            {{ transacao.categoria.nome }}
-                                        </span>
-                                    </td>
-                                    <td>{{ transacao.conta.nome }}</td>
-                                    <td class="{% if transacao.tipo == 'receita' %}text-success{% else %}text-danger{% endif %}">
-                                        {{ transacao.valor|br_currency }}
-                                    </td>
-                                    <td>
-                                        {% if transacao.tipo == 'receita' %}
-                                        <i class="fas fa-arrow-up text-success"></i>
-                                        {% else %}
-                                        <i class="fas fa-arrow-down text-danger"></i>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted">
-                                        Nenhuma transação encontrada
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'core:receita_list' %}" class="btn btn-outline-success me-2">
-                            <i class="fas fa-plus me-2"></i>Nova Receita
-                        </a>
-                        <a href="{% url 'core:despesa_list' %}" class="btn btn-outline-danger">
-                            <i class="fas fa-plus me-2"></i>Nova Despesa
-                        </a>
-                    </div>
+                    <small class="text-muted text-center d-block">{{ percentual_utilizacao|floatformat:1 }}% do limite utilizado</small>
                 </div>
             </div>
         </div>
@@ -542,105 +519,113 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridstack@7.2.3/dist/gridstack-all.js"></script>
 <script>
-// Dados dos gráficos (serão preenchidos pelo backend)
-const dadosGraficos = {
-    evolucao: {
-        labels: {{ labels_evolucao|safe }},
-        receitas: {{ dados_receitas|safe }},
-        despesas: {{ dados_despesas|safe }},
-        saldo: {{ dados_saldo|safe }}
-    },
-    categorias: {
-        labels: {{ labels_categorias|safe }},
-        dados: {{ dados_categorias|safe }},
-        cores: {{ cores_categorias|safe }}
-    }
-};
-
-// Função para formatar valores no padrão brasileiro
-function formatarMoeda(valor) {
-    return valor.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+// Modo dark automático
+if ({{ tema_escuro|yesno:'true,false' }}) {
+    document.body.classList.add('dark-mode');
+} else {
+    document.body.classList.remove('dark-mode');
 }
 
+// Inicializar GridStack
+var grid = GridStack.init({
+    column: 12,
+    cellHeight: 60,
+    animate: {{ dashboard_animations|yesno:'true,false' }},
+    float: false,
+    resizable: {
+        handles: 'all'
+    },
+    draggable: {
+        handle: '.grid-stack-item-content',
+        enabled: {{ dashboard_dragdrop|yesno:'true,false' }}
+    }
+});
+
+// Persistência do layout no localStorage
+function saveLayout() {
+    var layout = grid.save(false);
+    localStorage.setItem('dashboardLayout', JSON.stringify(layout));
+}
+grid.on('change', saveLayout);
+window.addEventListener('beforeunload', saveLayout);
+// Restaurar layout salvo
+window.addEventListener('DOMContentLoaded', function() {
+    var saved = localStorage.getItem('dashboardLayout');
+    if (saved) {
+        grid.load(JSON.parse(saved));
+    }
+});
+
 // Gráfico de Evolução
-const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
-new Chart(ctxEvolucao, {
+const evolucaoCtx = document.getElementById('evolucaoChart').getContext('2d');
+if (window.evolucaoChart) {
+    window.evolucaoChart.destroy();
+}
+window.evolucaoChart = new Chart(evolucaoCtx, {
     type: 'line',
     data: {
-        labels: dadosGraficos.evolucao.labels,
+        labels: {{ labels_evolucao|safe }},
         datasets: [{
             label: 'Receitas',
-            data: dadosGraficos.evolucao.receitas,
-            borderColor: 'rgba(40, 167, 69, 1)',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            borderWidth: 3,
-            fill: true,
+            data: {{ dados_receitas|safe }},
+            borderColor: '#00b894',
+            backgroundColor: 'rgba(0, 184, 148, 0.1)',
             tension: 0.4
         }, {
             label: 'Despesas',
-            data: dadosGraficos.evolucao.despesas,
-            borderColor: 'rgba(220, 53, 69, 1)',
-            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-            borderWidth: 3,
-            fill: true,
+            data: {{ dados_despesas|safe }},
+            borderColor: '#e17055',
+            backgroundColor: 'rgba(225, 112, 85, 0.1)',
             tension: 0.4
         }, {
             label: 'Saldo',
-            data: dadosGraficos.evolucao.saldo,
-            borderColor: 'rgba(0, 123, 255, 1)',
-            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-            borderWidth: 3,
-            fill: false,
+            data: {{ dados_saldo|safe }},
+            borderColor: '#0984e3',
+            backgroundColor: 'rgba(9, 132, 227, 0.1)',
             tension: 0.4
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-            intersect: false,
-            mode: 'index'
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    color: document.body.classList.contains('dark-mode') ? '#f1f1f1' : '#2c3e50'
+                }
+            }
         },
         scales: {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: function(value) {
-                        return formatarMoeda(value);
-                    }
-                }
-            }
-        },
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.dataset.label + ': ' + formatarMoeda(context.parsed.y);
-                    }
+                    color: document.body.classList.contains('dark-mode') ? '#f1f1f1' : '#2c3e50'
                 }
             },
-            legend: {
-                position: 'top'
+            x: {
+                ticks: {
+                    color: document.body.classList.contains('dark-mode') ? '#f1f1f1' : '#2c3e50'
+                }
             }
         }
     }
 });
 
 // Gráfico de Categorias
-const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
-new Chart(ctxCategorias, {
+const categoriasCtx = document.getElementById('categoriasChart').getContext('2d');
+if (window.categoriasChart) {
+    window.categoriasChart.destroy();
+}
+window.categoriasChart = new Chart(categoriasCtx, {
     type: 'doughnut',
     data: {
-        labels: dadosGraficos.categorias.labels,
+        labels: {{ labels_categorias|safe }},
         datasets: [{
-            data: dadosGraficos.categorias.dados,
-            backgroundColor: dadosGraficos.categorias.cores,
+            data: {{ dados_categorias|safe }},
+            backgroundColor: {{ cores_categorias|safe }},
             borderWidth: 2,
             borderColor: '#fff'
         }]
@@ -650,38 +635,42 @@ new Chart(ctxCategorias, {
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                position: 'right',
+                position: 'bottom',
                 labels: {
-                    usePointStyle: true
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const percentual = ((context.parsed / total) * 100).toFixed(1);
-                        return context.label + ': ' + formatarMoeda(context.parsed) + ' (' + percentual + '%)';
-                    }
+                    padding: 10,
+                    usePointStyle: true,
+                    color: document.body.classList.contains('dark-mode') ? '#f1f1f1' : '#2c3e50'
                 }
             }
         }
     }
 });
 
+// Redimensionar gráficos ao redimensionar cards
+function resizeCharts() {
+    evolucaoChart.resize();
+    categoriasChart.resize();
+}
+grid.on('resizestop', resizeCharts);
+window.addEventListener('resize', resizeCharts);
+
+// Configurações do dashboard baseadas nas preferências do usuário
+{% if dashboard_animations %}
+document.querySelectorAll('.grid-stack-item-content').forEach(item => {
+    item.style.transition = 'all 0.3s ease';
+});
+{% endif %}
+
 // Função para atualizar dashboard
 function atualizarDashboard() {
     location.reload();
 }
 
-// Atualização automática a cada 5 minutos
+// Refresh automático
+{% if dashboard_refresh > 0 %}
 setInterval(function() {
-    // Verificar se há novas transações
-    fetch('{% url "core:dashboard" %}')
-        .then(response => response.text())
-        .then(html => {
-            // Aqui você pode implementar uma atualização mais sutil
-            console.log('Dashboard verificado para atualizações');
-        });
-}, 300000); // 5 minutos
+    atualizarDashboard();
+}, {{ dashboard_refresh }} * 60 * 1000);
+{% endif %}
 </script>
 {% endblock %} 

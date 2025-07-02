@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Inativar Cartão de Crédito{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-ban me-2"></i>Inativar Cartão de Crédito</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Tem certeza que deseja <strong>inativar</strong> o cartão <strong>{{ cartao.nome }}</strong>?</p>
+                    <p class="text-muted">O cartão será mantido no histórico, mas não poderá ser usado em novas despesas. Você poderá reativá-lo futuramente, se desejar.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning"><i class="fas fa-ban me-1"></i>Inativar</button>
+                        <a href="{% url 'core:cartao_credito_list' %}" class="btn btn-secondary ms-2">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

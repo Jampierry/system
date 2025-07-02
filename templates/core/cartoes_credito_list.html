@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load br_filters %}
+{% load static %}
 {% block title %}Cartões de Crédito - SGFP{% endblock %}
 {% block content %}
 <div class="container-fluid">
@@ -12,40 +13,22 @@
             <i class="fas fa-plus me-2"></i>Novo Cartão
         </a>
     </div>
-    <div class="row">
-        {% for cartao in cartoes %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-2">
-                        <img src="/static/core/img/bandeiras/{{ cartao.bandeira }}.png" alt="{{ cartao.get_bandeira_display }}" style="height:32px;width:32px;object-fit:contain;" class="me-2">
-                        <h5 class="mb-0">{{ cartao.nome }}</h5>
-                        <span class="badge bg-secondary ms-2">{{ cartao.get_bandeira_display }}</span>
-                    </div>
-                    <div class="mb-2 text-muted" style="font-size:0.95em;">
-                        Titular: <strong>{{ cartao.titular }}</strong><br>
-                        Final: <strong>{{ cartao.numero|default:'****' }}</strong>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-muted">Limite:</span> <strong>{{ cartao.limite_total|br_currency }}</strong><br>
-                        <span class="text-muted">Em aberto:</span> <strong>{{ cartao.limite_utilizado|br_currency }}</strong><br>
-                        <span class="text-muted">Lim. disponível:</span> <strong>{{ cartao.limite_disponivel|br_currency }}</strong>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-muted">Fechamento:</span> {{ cartao.data_fechamento_fatura }}<br>
-                        <span class="text-muted">Vencimento:</span> {{ cartao.data_vencimento_fatura }}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <a href="{% url 'core:cartao_credito_update' cartao.id %}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-edit me-1"></i>Editar
-                        </a>
-                        <a href="{% url 'core:cartao_credito_delete' cartao.id %}" class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-trash me-1"></i>Remover
-                        </a>
-                    </div>
+    <h5 class="mb-3">Cartões Ativos</h5>
+    <div class="d-flex flex-wrap mb-4">
+        {% for cartao in cartoes_ativos %}
+            <div class="me-3 mb-3">
+                {% include 'core/_cartao_credito_card.html' with cartao=cartao limite_total=cartao.limite_total limite_utilizado=cartao.limite_utilizado limite_disponivel=cartao.limite_disponivel user=user %}
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <a href="{% url 'core:cartao_credito_update' cartao.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit me-1"></i>Editar</a>
+                    <form method="post" action="{% url 'core:cartao_credito_inativar' cartao.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-warning btn-sm" title="Inativar este cartão. Ele será mantido no histórico, mas não poderá ser usado em novas despesas.">
+                            <i class="fas fa-ban me-1"></i>Inativar
+                        </button>
+                    </form>
+                    <a href="{% url 'core:cartao_credito_delete' cartao.pk %}" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Excluir</a>
                 </div>
             </div>
-        </div>
         {% empty %}
         <div class="col-12 text-center text-muted py-5">
             <i class="fas fa-credit-card fa-3x mb-3"></i>
@@ -55,6 +38,28 @@
             </a>
         </div>
         {% endfor %}
+    </div>
+    <h5 class="mb-3 mt-4">Cartões Inativos</h5>
+    <div class="d-flex flex-wrap mb-4">
+        {% for cartao in cartoes_inativos %}
+            <div class="me-3 mb-3" style="opacity:0.6;">
+                {% include 'core/_cartao_credito_card.html' with cartao=cartao limite_total=cartao.limite_total limite_utilizado=cartao.limite_utilizado limite_disponivel=cartao.limite_disponivel user=user %}
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <form method="post" action="{% url 'core:cartao_credito_reativar' cartao.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-success btn-sm" title="Reativar este cartão.">
+                            <i class="fas fa-redo me-1"></i>Reativar
+                        </button>
+                    </form>
+                    <a href="{% url 'core:cartao_credito_update' cartao.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit me-1"></i>Editar</a>
+                    <a href="{% url 'core:cartao_credito_delete' cartao.pk %}" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Excluir</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="alert alert-info mt-3">
+        <strong>Inativar</strong>: O cartão será mantido no histórico, mas não poderá ser usado em novas despesas.<br>
+        <strong>Excluir</strong>: O cartão será removido do sistema (ação irreversível).
     </div>
 </div>
 {% endblock %} 
