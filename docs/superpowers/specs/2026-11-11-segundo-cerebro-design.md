@@ -92,7 +92,12 @@ Alternador **Produtividade | Biblioteca** como na imagem. Na Biblioteca:
   **menções sem link**, `#tags`, propriedades (frontmatter YAML), painel de **outline**.
 - **Visão de grafo** (SVG, filtro por tag/área), **notas diárias** (um clique, template), **templates**.
 - **Paleta de comandos / troca rápida** (Ctrl/Cmd+K), **busca full-text** (FTS5) com filtros.
-- **Mapas mentais** (nós, filhos, cores, arrastar, salvar) e opção "converter ramo em notas/tarefas".
+- **Mapas mentais interativos** (SVG com pan e zoom): arrastar nós; `Tab` cria filho, `Enter` cria irmão,
+  `Del` remove, duplo clique edita o texto; recolher/expandir ramos; cores; layout automático radial;
+  desfazer/refazer; vincular um nó a uma nota (`[[nota]]`) ou a um item; minimapa; salvamento automático.
+  Com IA: **expandir ramo** (sugere filhos) e **gerar mapa a partir de um tema ou nota**. Exporta como
+  outline Markdown, SVG e PNG, e converte ramo em notas/tarefas. Operações do mapa são funções puras em
+  `packages/shared` (testáveis sem UI).
 - **Importar vault Obsidian** (upload de .md/zip) e **exportar tudo em Markdown** (dados do usuário são dele).
 
 ### 5.3 Assistente
