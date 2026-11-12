@@ -44,6 +44,11 @@ export async function profileRoutes(app: FastifyInstance) {
     if (b.permissions) assertCanGrant(req.user!, b.permissions);
     if (cur.is_system && (b.name !== undefined && b.name !== cur.name)) fail(409, 'SYSTEM_PROFILE', 'Perfis de sistema não podem ser renomeados');
     if (id === 'sys-admin' && b.permissions) fail(409, 'SYSTEM_PROFILE', 'O perfil Administrador não pode perder permissões');
+    if (b.permissions && !b.permissions.includes('users.manage')) {
+      const holders = (db.prepare(`select u.profile_id pid, p.permissions_json pj from users u join profiles p on p.id = u.profile_id where u.status='active' and u.deleted_at is null`).all() as { pid: string; pj: string }[])
+        .filter(r => r.pid !== id && (JSON.parse(r.pj) as string[]).includes('users.manage'));
+      if (!holders.length) fail(409, 'LAST_ADMIN', 'Não é possível remover o último administrador');
+    }
     if (b.name && b.name !== cur.name && db.prepare('select 1 from profiles where name = ?').get(b.name)) fail(409, 'NAME_TAKEN', 'Já existe um perfil com este nome');
     db.prepare('update profiles set name=?, description=?, permissions_json=? where id=?')
       .run(b.name ?? cur.name, b.description ?? cur.description, b.permissions ? JSON.stringify(b.permissions) : cur.permissions_json, id);

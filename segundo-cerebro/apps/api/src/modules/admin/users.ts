@@ -98,7 +98,8 @@ export async function userRoutes(app: FastifyInstance) {
     const cur = getUser(id) as any;
     assertCanGrant(req.user!, userProfilePerms(db, id));
     guardSelfAndLastAdmin(req.user!.id, id);
-    db.prepare("update users set deleted_at = ?, status = 'locked' where id = ?").run(deps.now().toISOString(), id);
+    // o e-mail é liberado para novo cadastro (único no banco); o original fica no log de auditoria
+    db.prepare("update users set deleted_at = ?, status = 'locked', email = ? where id = ?").run(deps.now().toISOString(), `deleted+${id}+${cur.email}`, id);
     revokeUserSessions(deps, id);
     logAudit(deps, req.user!.id, 'user.delete', cur.email);
     return { ok: true };

@@ -20,13 +20,22 @@ export function normalizeNotePath(name: string): { path: string; title: string }
   return { path: clean.join('/'), title };
 }
 
+const MAX_UNZIPPED = 100 * 1024 * 1024;
+
 export function importFiles(deps: Deps, userId: string, files: ImportFile[], zipBase64?: string): { imported: number; skipped: number } {
   const all: ImportFile[] = [...files];
   if (zipBase64) {
     if (zipBase64.length > MAX_ZIP_B64) fail(413, 'TOO_LARGE', 'Arquivo muito grande');
     try {
+      let count = 0;
+      let total = 0;
       const entries = unzipSync(new Uint8Array(Buffer.from(zipBase64, 'base64')), {
-        filter: f => /\.md$/i.test(f.name) && f.originalSize <= MAX_NOTE_BYTES,
+        filter: f => {
+          if (!/\.md$/i.test(f.name) || f.originalSize > MAX_NOTE_BYTES) return false;
+          count++; total += f.originalSize;
+          if (count > MAX_FILES || total > MAX_UNZIPPED) throw new Error('zip grande demais'); // antes de descompactar
+          return true;
+        },
       });
       for (const [name, data] of Object.entries(entries)) all.push({ name, content: strFromU8(data) });
     } catch {

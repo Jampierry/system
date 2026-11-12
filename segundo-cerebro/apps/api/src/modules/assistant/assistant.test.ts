@@ -49,6 +49,22 @@ describe('chat', () => {
     expect((c.db.prepare("select content_json j from messages where role='user'").get() as any).j).toContain('pagar luz');
   });
 
+  it('Claude falha depois de executar ferramenta → não repete no demo (sem item duplicado)', async () => {
+    const c = await setup({ ai: fake(async (input) => { await input.runTool('criar_item', { title: 'comprar pão' }); throw new Error('529'); }) });
+    const j = (await chat(c, { message: 'anota: comprar pão' })).json();
+    expect(j.fallback).toBe(true);
+    expect(c.db.prepare("select count(*) c from items where title='comprar pão'").get()).toEqual({ c: 1 });
+  });
+
+  it('histórico longo começa por "user" e ignora respostas vazias do assistente', async () => {
+    let seen: any;
+    const c = await setup({ ai: fake(async (input) => { seen = input; return { text: seen.messages.length > 1 ? '' : 'ok', toolsUsed: [] }; }) });
+    let conv: string | undefined;
+    for (let i = 0; i < 12; i++) conv = (await chat(c, { message: `m${i}`, conversationId: conv })).json().conversationId;
+    expect(seen.messages[0].role).toBe('user');
+    expect(seen.messages.every((m: any) => m.role === 'user' || m.content.trim())).toBe(true);
+  });
+
   it('Claude lento (timeout) → fallback demo', async () => {
     const c = await setup({ aiTimeoutMs: 50, ai: fake(() => new Promise(() => {})) });
     const j = (await chat(c, { message: 'oi' })).json();

@@ -16,7 +16,7 @@ export function MarkdownPreview({ md, links, onOpenLink, onTag }: {
       case 'bold': return <Text key={i} style={[base, styles.bold]}>{n.text}</Text>;
       case 'italic': return <Text key={i} style={[base, styles.italic]}>{n.text}</Text>;
       case 'code': return <Text key={i} style={styles.inlineCode}>{n.text}</Text>;
-      case 'link': return <Text key={i} accessibilityRole="link" style={[base, styles.link]} onPress={() => { try { globalThis.open?.(n.href, '_blank'); } catch { /* sem janela */ } }}>{n.text}</Text>;
+      case 'link': return <Text key={i} accessibilityRole="link" style={[base, styles.link]} onPress={() => { if (!/^(https?:|mailto:)/i.test(n.href ?? '')) return; try { globalThis.open?.(n.href, '_blank', 'noopener,noreferrer'); } catch { /* sem janela */ } }}>{n.text}</Text>;
       case 'tag': return <Text key={i} style={[base, styles.tag]} onPress={() => onTag?.(n.text.slice(1))}>{n.text}</Text>;
       case 'wikilink': {
         const id = resolved.get(n.target!.toLowerCase()) ?? null;

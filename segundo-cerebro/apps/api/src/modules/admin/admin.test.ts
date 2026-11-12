@@ -70,6 +70,26 @@ describe('admin: usuários', () => {
     }
   });
 
+  it('e-mail de usuário excluído pode ser reutilizado', async () => {
+    const c = await setup();
+    const mk = () => call(c, 'POST', '/api/admin/users', c.admin, { name: 'Ana', email: 'ana@x.com', profileId: profileId(c, 'Membro') });
+    const first = (await mk()).json().user;
+    expect((await call(c, 'DELETE', `/api/admin/users/${first.id}`, c.admin)).statusCode).toBe(200);
+    expect((await mk()).statusCode).toBe(200);
+  });
+
+  it('editar o perfil não pode tirar users.manage do último administrador', async () => {
+    const c = await setup();
+    const gestor = (await call(c, 'POST', '/api/admin/profiles', c.admin, { name: 'Gestor TI', description: '', permissions: ['users.manage', 'profiles.manage', 'recovery.manage', 'audit.view', 'notes.write', 'items.write', 'assistant.use', 'export.data'] })).json().profile;
+    c.db.prepare("update users set profile_id=? where email='membro@x.com'").run(gestor.id);
+    const g = bearer(await loginAs(c.app, 'membro@x.com'));
+    // o admin de sistema sai; o Gestor TI passa a ser o único com users.manage
+    expect((await call(c, 'DELETE', `/api/admin/users/${c.adminId}`, g)).statusCode).toBe(200);
+    const r = await call(c, 'PATCH', `/api/admin/profiles/${gestor.id}`, g, { permissions: ['profiles.manage', 'notes.write'] });
+    expect(r.statusCode).toBe(409);
+    expect(r.json().error.code).toBe('LAST_ADMIN');
+  });
+
   it('com outro admin ativo, ainda recusa ação sobre si mesmo (SELF_ACTION)', async () => {
     const c = await setup();
     await createUser(c.db, { email: 'admin2@x.com', profile: 'admin' });

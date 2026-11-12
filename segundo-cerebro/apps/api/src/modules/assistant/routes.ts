@@ -48,13 +48,17 @@ export async function assistantRoutes(app: FastifyInstance) {
   ) {
     const used: { name: string; ok: boolean }[] = [];
     const tools = buildTools(ctx);
-    const wrapped = { defs: tools.defs, run: async (name: string, args: unknown) => {
+    const guarded = (isCancelled: () => boolean) => ({ defs: tools.defs, run: async (name: string, args: unknown) => {
+      if (isCancelled()) return JSON.stringify({ error: 'cancelado' });
       const out = await tools.run(name, args);
       let ok = true;
       try { ok = !JSON.parse(out).error; } catch { /* ok */ }
       used.push({ name, ok });
       return out;
-    } };
+    } });
+    // Após timeout/erro, o loop do Claude que continua rodando não executa mais ferramentas.
+    let cancelled = false;
+    const wrapped = guarded(() => cancelled);
     const input = build({ defs: wrapped.defs, run: wrapped.run });
     const p = provider();
     // Sem Claude e sem fallback pedido (ações estruturadas), quem chama usa o caminho determinístico.
@@ -63,10 +67,14 @@ export async function assistantRoutes(app: FastifyInstance) {
       const r = await withTimeout(() => p.respond(input));
       return { text: r.text, mode: p.mode, fallback: false, used, tools: wrapped };
     } catch {
+      cancelled = true;
+      // Se alguma ferramenta já agiu, repetir no modo demo duplicaria o efeito: informa em vez de refazer.
+      if (used.some(u => u.ok)) return { text: 'Concluí parte do pedido, mas tive um problema antes de terminar. Confira o que foi feito e me peça o restante.', mode: p.mode, fallback: true, used, tools: wrapped };
       used.length = 0;
       if (!demoFallback) return { text: '', mode: 'demo' as const, fallback: true, used, tools: wrapped };
       try {
-        const r = await new DemoProvider().respond(input);
+        const demo = guarded(() => false);
+        const r = await new DemoProvider().respond(build({ defs: demo.defs, run: demo.run }));
         return { text: r.text, mode: 'demo' as const, fallback: p.mode !== 'demo', used, tools: wrapped };
       } catch {
         return { text: 'Desculpe, tive um problema para responder agora.', mode: 'demo' as const, fallback: true, used, tools: wrapped };
@@ -98,7 +106,10 @@ export async function assistantRoutes(app: FastifyInstance) {
     save('user', { text: b.message, hasImage: !!b.imageBase64 }); // salva antes de chamar a IA: nunca se perde
 
     const rows = db.prepare('select role, content_json from messages where conversation_id=? order by rowid desc limit 20').all(convId) as { role: 'user' | 'assistant'; content_json: string }[];
-    const history: ChatMessage[] = rows.reverse().map(r => ({ role: r.role, content: JSON.parse(r.content_json).text ?? '' }));
+    const history: ChatMessage[] = rows.reverse()
+      .map(r => ({ role: r.role, content: (JSON.parse(r.content_json).text ?? '') as string }))
+      .filter(m => m.role === 'user' || m.content.trim()); // a API rejeita mensagens do assistente vazias
+    while (history.length > 1 && history[0].role !== 'user') history.shift(); // e exige começar por "user"
     if (b.imageBase64) Object.assign(history[history.length - 1], { imageBase64: b.imageBase64, imageMime: b.imageMime });
 
     const settings = getSettings(deps, user.id);

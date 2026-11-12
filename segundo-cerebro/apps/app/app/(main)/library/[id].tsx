@@ -41,7 +41,7 @@ export default function NoteScreen() {
   const [panel, setPanel] = useState(false);
   const saved = useRef({ title: '', body: '' });
   const latest = useRef({ title: '', body: '', id: '' });
-  latest.current = { title, body, id: id ?? '' };
+  latest.current = { title, body, id: note?.id ?? '' }; // id da nota carregada (não da rota): ao trocar de nota, o save de saída usa o conteúdo certo
 
   const loadTitles = useCallback(() => { api<{ notes: NoteLite[] }>('/api/notes').then(r => setTitles(r.notes)).catch(() => {}); }, []);
   useEffect(() => { loadTitles(); }, [loadTitles]);

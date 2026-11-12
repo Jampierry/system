@@ -203,6 +203,16 @@ describe('importar e exportar', () => {
     expect((await backlinks(c, beta.id, c.B)).map(n => n.title)).toEqual(['Alfa']);
   });
 
+  it('zip com muito conteúdo descompactado é recusado', async () => {
+    const c = await setup();
+    const big = 'a'.repeat(1_900_000);
+    const files: Record<string, Uint8Array> = {};
+    for (let i = 0; i < 60; i++) files[`n${i}.md`] = strToU8(big);
+    const r = await api(c, 'POST', '/api/import', c.A, { zipBase64: Buffer.from(zipSync(files)).toString('base64') });
+    expect(r.statusCode).toBeGreaterThanOrEqual(400);
+    expect(c.db.prepare('select count(*) c from notes').get()).toEqual({ c: 0 });
+  });
+
   it('zip inválido → 400', async () => {
     const c = await setup();
     const r = await api(c, 'POST', '/api/import', c.A, { zipBase64: Buffer.from('isto não é zip').toString('base64') });
