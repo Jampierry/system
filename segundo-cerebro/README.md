@@ -162,3 +162,16 @@ fly deploy
 
 O app fica em `https://<nome>.fly.dev` (HTTPS, necessário para microfone e câmera no celular). Qualquer serviço que rode
 Docker com um volume em `/data` também serve (Railway, Render com disco, VPS). Sem `ANTHROPIC_API_KEY` o assistente fica em modo demo.
+
+## APK de prévia (Android)
+
+O app mobile precisa de um servidor público (veja "Publicar"). Em `apps/app/eas.json`, troque `EXPO_PUBLIC_API_URL` pela URL do
+seu servidor (https) e gere o APK na nuvem do Expo (conta gratuita em expo.dev):
+
+```bash
+cd segundo-cerebro/apps/app
+npx eas-cli login
+npx eas-cli build --platform android --profile preview
+```
+
+Ao final, o EAS mostra um link e um QR code para baixar o `.apk` e instalar no celular (permita "instalar de fontes desconhecidas").

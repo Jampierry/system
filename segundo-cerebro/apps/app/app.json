@@ -7,11 +7,24 @@
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "plugins": ["expo-router"],
-    "ios": { "supportsTablet": true },
-    "android": {
-      "adaptiveIcon": { "backgroundColor": "#0b0b0f", "foregroundImage": "./assets/android-icon-foreground.png" }
+    "plugins": [
+      "expo-router"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.segundocerebro"
     },
-    "web": { "bundler": "metro", "output": "single", "favicon": "./assets/favicon.png" }
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0b0f",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "package": "br.com.segundocerebro"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    }
   }
 }
