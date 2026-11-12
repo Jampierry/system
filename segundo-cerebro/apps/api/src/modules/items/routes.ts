@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { fail } from '../../errors';
 import { requirePermission, requireUser } from '../auth/guard';
-import { createItem, getItem, listItems, toItem, updateItem } from './repo';
+import { createItem, getItem, listItems, logEntry, toItem, updateItem } from './repo';
 
 const iso = z.string().datetime({ offset: true }).nullable();
 const base = {
@@ -111,6 +111,11 @@ export async function itemRoutes(app: FastifyInstance) {
       inbox: by('inbox'), waiting: by('waiting'), someday: by('someday'),
       projectsWithoutNext: projects.filter(p => !hasNext.get(p.id)).map(dto),
     };
+  });
+
+  app.post('/api/review/complete', { preHandler: write }, async (req) => {
+    logEntry(deps, req.user!.id, 'review.done', null, 'Revisão semanal concluída');
+    return { ok: true };
   });
 
   app.get('/api/logbook', { preHandler: read }, async (req) => {

@@ -142,3 +142,15 @@ describe('calendário, revisão e busca', () => {
     }
   });
 });
+
+describe('conclusão da revisão semanal', () => {
+  it('grava no logbook e exige permissão de escrita', async () => {
+    const c = await setup();
+    const r = await api(c, 'POST', '/api/review/complete', c.A);
+    expect(r.statusCode).toBe(200);
+    const log = (await api(c, 'GET', '/api/logbook', c.A)).json().entries;
+    expect(log[0]).toMatchObject({ kind: 'review.done', summary: 'Revisão semanal concluída' });
+    expect((await api(c, 'POST', '/api/review/complete', c.R)).statusCode).toBe(403);
+    expect((await api(c, 'GET', '/api/logbook', c.B)).json().entries).toEqual([]);
+  });
+});
