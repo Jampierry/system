@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import type { Deps } from './deps';
 import { HttpError } from './errors';
 import { authRoutes } from './modules/auth/routes';
+import { adminRoutes } from './modules/admin/routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -30,5 +31,6 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
   app.setNotFoundHandler((_req, reply) => reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Não encontrado' } }));
 
   await app.register(authRoutes);
+  await app.register(adminRoutes);
   return app;
 }
