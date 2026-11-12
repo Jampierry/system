@@ -147,3 +147,18 @@ git push git@github.com:SEU_USUARIO/segundo-cerebro.git segundo-cerebro-only:mai
 - Para crescer: Postgres no lugar do SQLite, fila para tarefas de IA longas e armazenamento de arquivos para fotos.
 
 A especificação e o plano de implementação estão em `../docs/superpowers/specs` e `../docs/superpowers/plans`.
+
+## Publicar (acessar do celular)
+
+O repositório traz um `Dockerfile` (API + app web, porta 8787, SQLite em `/data`). No [Fly.io](https://fly.io):
+
+```bash
+cd segundo-cerebro
+fly launch --no-deploy --copy-config      # ajuste o nome do app em fly.toml
+fly volumes create cerebro_data --size 1 --region gru
+fly secrets set ADMIN_EMAIL=voce@exemplo.com ADMIN_PASSWORD='uma-senha-longa' ANTHROPIC_API_KEY=sk-ant-...
+fly deploy
+```
+
+O app fica em `https://<nome>.fly.dev` (HTTPS, necessário para microfone e câmera no celular). Qualquer serviço que rode
+Docker com um volume em `/data` também serve (Railway, Render com disco, VPS). Sem `ANTHROPIC_API_KEY` o assistente fica em modo demo.

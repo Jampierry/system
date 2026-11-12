@@ -1,0 +1,25 @@
+# fly launch --no-deploy --copy-config   (troque "app" por um nome único)
+app = "segundo-cerebro-seunome"
+primary_region = "gru"
+
+[build]
+
+[env]
+  PORT = "8787"
+  DB_PATH = "/data/cerebro.sqlite"
+
+[[mounts]]
+  source = "cerebro_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
