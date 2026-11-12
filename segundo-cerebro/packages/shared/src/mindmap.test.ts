@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   createMap, addChild, addSibling, removeNode, moveNode, setText, toggleCollapse, setColor, setLink,
-  layoutRadial, visibleNodes, toOutlineMarkdown, fromOutlineMarkdown, mindmapSchema, History, children, subtreeIds,
+  layoutRadial, visibleNodes, nodeSize, toOutlineMarkdown, fromOutlineMarkdown, mindmapSchema, History, children, subtreeIds,
   type MindMap,
 } from './mindmap';
 
@@ -112,6 +112,32 @@ describe('layout radial', () => {
       }
     }
     expect(l.nodes[root]).toMatchObject({ x: 0, y: 0 });
+  });
+});
+
+describe('layout radial: caixas dos nós', () => {
+  const overlap = (a: any, b: any) => {
+    const sa = nodeSize(a.text); const sb = nodeSize(b.text);
+    return Math.abs(a.x - b.x) < (sa.w + sb.w) / 2 && Math.abs(a.y - b.y) < (sa.h + sb.h) / 2;
+  };
+  it('nenhum retângulo de nó se sobrepõe, mesmo com textos largos', () => {
+    let m = createMap('Tema central do mapa');
+    const root = m.rootId;
+    for (let i = 0; i < 8; i++) {
+      const r = addChild(m, root, `Ramo principal número ${i}`); m = r.map;
+      for (let j = 0; j < 5; j++) m = addChild(m, r.id, `Detalhe comprido do ramo ${i}.${j}`).map;
+    }
+    const l = layoutRadial(m);
+    const nodes = Object.values(l.nodes);
+    let clashes = 0;
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) if (overlap(nodes[i], nodes[j])) clashes++;
+    expect(clashes).toBe(0);
+    expect(l.nodes[root]).toMatchObject({ x: 0, y: 0 });
+  });
+  it('nodeSize: mínimo, máximo e crescimento com o texto', () => {
+    expect(nodeSize('a').w).toBe(70);
+    expect(nodeSize('x'.repeat(200)).w).toBe(260);
+    expect(nodeSize('um texto de tamanho médio').w).toBeGreaterThan(70);
   });
 });
 

@@ -121,6 +121,14 @@ export function visibleNodes(m: MindMap): MindNode[] {
   return out;
 }
 
+const CHAR_W = 7.4;
+export const NODE_H = 36;
+
+/** Tamanho estimado do retângulo de um nó a partir do texto (usado no layout, no canvas e na exportação). */
+export function nodeSize(text: string): { w: number; h: number } {
+  return { w: Math.max(70, Math.min(260, Math.round(text.length * CHAR_W + 32))), h: NODE_H };
+}
+
 const MIN_GAP_PX = 44;
 const RING_STEP = 170;
 
@@ -174,7 +182,37 @@ export function layoutRadial(m: MindMap): MindMap {
     const a = angle.get(n.id) ?? 0;
     nodes[n.id] = { ...n, x: d === 0 ? 0 : Math.round(r * Math.cos(a)), y: d === 0 ? 0 : Math.round(r * Math.sin(a)) };
   }
+  separateBoxes(Object.values(nodes), m.rootId);
   return { ...m, nodes };
+}
+
+/** Afasta nós cujos retângulos se sobrepõem (a raiz fica fixa). Relaxamento simples, limitado em tamanho. */
+function separateBoxes(list: MindNode[], rootId: string): void {
+  if (list.length < 2 || list.length > 600) return;
+  const PAD = 14;
+  const size = list.map(n => nodeSize(n.text));
+  for (let iter = 0; iter < 300; iter++) {
+    let moved = false;
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i]; const b = list[j];
+        const dx = b.x - a.x; const dy = b.y - a.y;
+        const ox = (size[i].w + size[j].w) / 2 + PAD - Math.abs(dx);
+        const oy = (size[i].h + size[j].h) / 2 + PAD - Math.abs(dy);
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        const horizontal = ox < oy;
+        const sign = (horizontal ? dx : dy) >= 0 ? 1 : -1;
+        const push = (horizontal ? ox : oy) / 2 + 0.5;
+        const fixA = a.id === rootId; const fixB = b.id === rootId;
+        const ka = fixA ? 0 : fixB ? 2 : 1; const kb = fixB ? 0 : fixA ? 2 : 1;
+        if (horizontal) { a.x -= sign * push * ka; b.x += sign * push * kb; }
+        else { a.y -= sign * push * ka; b.y += sign * push * kb; }
+      }
+    }
+    if (!moved) break;
+  }
+  for (const n of list) { n.x = Math.round(n.x); n.y = Math.round(n.y); }
 }
 
 const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim();

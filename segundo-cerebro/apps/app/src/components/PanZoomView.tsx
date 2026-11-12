@@ -6,7 +6,8 @@ type Ctx = { scale: number };
 const PanZoomCtx = createContext<Ctx>({ scale: 1 });
 export const usePanZoom = () => useContext(PanZoomCtx);
 
-export type PanZoomHandle = { fit: (w: number, h: number) => void; reset: () => void };
+export type Transform = { x: number; y: number; scale: number; w: number; h: number };
+export type PanZoomHandle = { fit: (w: number, h: number, cx?: number, cy?: number) => void; reset: () => void; centerOn: (wx: number, wy: number) => void };
 
 /**
  * Superfície com pan (arrastar o fundo) e zoom (roda do mouse / botões). A origem (0,0) dos filhos fica no centro.
@@ -14,8 +15,8 @@ export type PanZoomHandle = { fit: (w: number, h: number) => void; reset: () => 
  */
 export const PanZoomView = React.forwardRef<PanZoomHandle, {
   children: React.ReactNode; style?: ViewStyle; minScale?: number; maxScale?: number; showControls?: boolean; background?: string;
-  onBackgroundPress?: () => void;
-}>(function PanZoomView({ children, style, minScale = 0.2, maxScale = 3, showControls = true, background, onBackgroundPress }, ref) {
+  onBackgroundPress?: () => void; onTransform?: (t: Transform) => void;
+}>(function PanZoomView({ children, style, minScale = 0.2, maxScale = 3, showControls = true, background, onBackgroundPress, onTransform }, ref) {
   const [t, setT] = useState({ x: 0, y: 0, scale: 1 });
   const tRef = useRef(t);
   tRef.current = t;
@@ -37,11 +38,15 @@ export const PanZoomView = React.forwardRef<PanZoomHandle, {
 
   const zoomBy = useCallback((f: number) => setT(c => ({ ...c, scale: clampScale(c.scale * f) })), [clampScale]);
 
+  useEffect(() => { onTransform?.({ ...t, w: size.w, h: size.h }); }, [t, size, onTransform]);
+
   React.useImperativeHandle(ref, () => ({
     reset: () => setT({ x: 0, y: 0, scale: 1 }),
-    fit: (w: number, h: number) => setT(() => {
+    centerOn: (wx: number, wy: number) => setT(c => ({ ...c, x: -wx * c.scale, y: -wy * c.scale })),
+    fit: (w: number, h: number, cx = 0, cy = 0) => setT(() => {
       if (!size.w || !size.h || !w || !h) return { x: 0, y: 0, scale: 1 };
-      return { x: 0, y: 0, scale: clampScale(Math.min(size.w / (w + 80), size.h / (h + 80), 1.5)) };
+      const scale = clampScale(Math.min(size.w / (w + 80), size.h / (h + 80), 1.5));
+      return { x: -cx * scale, y: -cy * scale, scale };
     }),
   }), [size, clampScale]);
 

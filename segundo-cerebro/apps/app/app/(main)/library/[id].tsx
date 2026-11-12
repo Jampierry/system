@@ -94,6 +94,15 @@ export default function NoteScreen() {
   const parsed = useMemo(() => parseNote(body), [body]);
   const links = useMemo(() => parsed.links.map(l => ({ target: l.target, noteId: titleMap.get(l.target.toLowerCase())?.id ?? null })), [parsed, titleMap]);
 
+  async function generateMap() {
+    try {
+      await save();
+      const r = await api<{ mindmapId: string }>('/api/assistant/mindmap/generate', { method: 'POST', body: { noteId: id } });
+      emit('mindmaps');
+      router.push(`/library/mindmaps/${r.mindmapId}` as any);
+    } catch (e: any) { toast.show(e.message ?? 'Não foi possível gerar o mapa', 'error'); }
+  }
+
   async function remove() {
     try { await api(`/api/notes/${id}`, { method: 'DELETE' }); emit('notes'); toast.show('Nota excluída', 'success'); router.replace('/library' as any); } catch (e: any) { toast.show(e.message, 'error'); }
   }
@@ -123,6 +132,7 @@ export default function NoteScreen() {
             </Pressable>
           ))}
           <View style={{ flex: 1 }} />
+          {writable && can('assistant.use') ? <Button label="Gerar mapa" small variant="ghost" icon="map" onPress={generateMap} /> : null}
           {!isWide ? <Button label="Painel" small variant="ghost" icon="graph" onPress={() => setPanel(p => !p)} /> : null}
           {writable ? (confirmDel
             ? <Button label="Confirmar exclusão" small variant="danger" icon="trash" onPress={remove} />
