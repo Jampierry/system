@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Segundo Cérebro",
-    "slug": "segundo-cerebro",
+    "name": "Memoritrix",
+    "slug": "memoritrix",
     "version": "0.1.0",
-    "scheme": "segundocerebro",
+    "scheme": "memoritrix",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -12,14 +12,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.segundocerebro"
+      "bundleIdentifier": "br.com.memoritrix"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0b0b0f",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "package": "br.com.segundocerebro"
+      "package": "br.com.memoritrix"
     },
     "web": {
       "bundler": "metro",

@@ -9,7 +9,7 @@ export class ConsoleMailer implements Mailer {
 
 export class SmtpMailer implements Mailer {
   private tx;
-  constructor(url: string, private from = 'Segundo Cérebro <no-reply@localhost>') {
+  constructor(url: string, private from = 'Memoritrix <no-reply@localhost>') {
     this.tx = nodemailer.createTransport(url);
   }
   async send(to: string, subject: string, text: string): Promise<void> {

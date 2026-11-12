@@ -1,4 +1,4 @@
-# Segundo Cérebro: API + app web em uma única imagem (porta 8787).
+# Memoritrix: API + app web em uma única imagem (porta 8787).
 FROM node:22-bookworm-slim
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./

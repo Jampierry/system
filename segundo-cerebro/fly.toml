@@ -1,5 +1,5 @@
 # fly launch --no-deploy --copy-config   (troque "app" por um nome único)
-app = "segundo-cerebro-seunome"
+app = "memoritrix-seunome"
 primary_region = "gru"
 
 [build]

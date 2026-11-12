@@ -66,7 +66,7 @@ export default function Library() {
   }
 
   async function doExport() {
-    try { downloadBlob(await apiBlob('/api/export'), 'segundo-cerebro.zip'); toast.show('Exportação iniciada', 'success'); } catch (e: any) { toast.show(e.message, 'error'); }
+    try { downloadBlob(await apiBlob('/api/export'), 'memoritrix.zip'); toast.show('Exportação iniciada', 'success'); } catch (e: any) { toast.show(e.message, 'error'); }
   }
 
   return (

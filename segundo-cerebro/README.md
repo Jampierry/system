@@ -1,4 +1,6 @@
-# Segundo Cérebro
+# Memoritrix
+
+> **Seu segundo cérebro em ação.**
 
 Protótipo de um **segundo cérebro pessoal** para web e mobile: caixa de entrada GTD, agenda, notas estilo Obsidian
 (`[[links]]`, backlinks, grafo), **mapas mentais interativos**, um **assistente de IA** que entende texto, voz e foto e

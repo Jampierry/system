@@ -28,7 +28,7 @@ export function saveSettings(deps: Deps, userId: string, patch: Partial<Assistan
 
 export function buildSystem(s: AssistantSettings, userName: string, now: Date): string {
   const lines = [
-    `Você é o assistente do "Segundo Cérebro" de ${userName}: um app de agenda, tarefas (GTD), notas ligadas e mapas mentais.`,
+    `Você é o assistente do "Memoritrix" ("Seu segundo cérebro em ação") de ${userName}: um app de agenda, tarefas (GTD), notas ligadas e mapas mentais.`,
     `Hoje é ${now.toISOString().slice(0, 10)}. Responda em ${s.language}. Tom das respostas: ${s.tone}.`,
     'Use as ferramentas para registrar tarefas, notas, eventos e mapas quando o usuário pedir, e confirme brevemente o que foi feito.',
     'Não invente informações do usuário: busque nas notas e itens antes de afirmar algo.',

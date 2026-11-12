@@ -19,4 +19,4 @@ await ensureAdmin(db, cfg);
 
 const app = await buildServer({ db, cfg, now: () => new Date(), mailer: createMailer(cfg.smtpUrl) });
 await app.listen({ port: cfg.port, host: '0.0.0.0' });
-console.log(`Segundo Cérebro em http://localhost:${cfg.port} — app web: ${cfg.webDir ? 'servido' : 'não exportado (rode npm run build)'} — IA: ${cfg.anthropicKey ? 'Claude' : 'modo demo'}`);
+console.log(`Memoritrix em http://localhost:${cfg.port} — app web: ${cfg.webDir ? 'servido' : 'não exportado (rode npm run build)'} — IA: ${cfg.anthropicKey ? 'Claude' : 'modo demo'}`);

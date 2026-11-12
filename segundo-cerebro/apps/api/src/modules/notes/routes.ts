@@ -113,7 +113,7 @@ export async function noteRoutes(app: FastifyInstance) {
   app.get('/api/export', { preHandler: requirePermission(app, 'export.data') }, async (req, reply) => {
     return reply
       .header('content-type', 'application/zip')
-      .header('content-disposition', 'attachment; filename="segundo-cerebro.zip"')
+      .header('content-disposition', 'attachment; filename="memoritrix.zip"')
       .send(exportZip(deps, req.user!.id));
   });
 }
