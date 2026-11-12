@@ -20,9 +20,11 @@ const SHOTS = join(root, 'docs/screens');
 if (!existsSync(join(root, 'apps/app/dist/index.html'))) { console.error('Rode "npm run build" antes do e2e.'); process.exit(2); }
 mkdirSync(SHOTS, { recursive: true });
 
+if ((await fetch(`${BASE}/api/auth/setup-status`).then(() => true, () => false))) { console.error(`A porta ${PORT} já está em uso; defina E2E_PORT.`); process.exit(2); }
+
 const tmp = mkdtempSync(join(tmpdir(), 'cerebro-e2e-'));
-const server = spawn('npx', ['tsx', 'apps/api/src/main.ts'], { cwd: root, env: { ...process.env, PORT: String(PORT), DB_PATH: join(tmp, 'e2e.sqlite'), ADMIN_EMAIL: '', ADMIN_PASSWORD: '', ANTHROPIC_API_KEY: '' }, stdio: 'ignore' });
-const stop = () => { server.kill('SIGTERM'); rmSync(tmp, { recursive: true, force: true }); };
+const server = spawn(process.execPath, [join(root, 'node_modules/tsx/dist/cli.mjs'), 'apps/api/src/main.ts'], { cwd: root, detached: true, env: { ...process.env, PORT: String(PORT), DB_PATH: join(tmp, 'e2e.sqlite'), ADMIN_EMAIL: '', ADMIN_PASSWORD: '', ANTHROPIC_API_KEY: '' }, stdio: 'ignore' });
+const stop = () => { try { process.kill(-server.pid, 'SIGTERM'); } catch { server.kill('SIGTERM'); } rmSync(tmp, { recursive: true, force: true }); };
 process.on('exit', stop);
 
 const results = [];
