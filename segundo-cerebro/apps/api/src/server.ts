@@ -8,6 +8,7 @@ import { adminRoutes } from './modules/admin/routes';
 import { recoveryRoutes } from './modules/recovery/routes';
 import { itemRoutes } from './modules/items/routes';
 import { noteRoutes } from './modules/notes/routes';
+import { mindmapRoutes } from './modules/mindmaps/routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -38,5 +39,6 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
   await app.register(recoveryRoutes);
   await app.register(itemRoutes);
   await app.register(noteRoutes);
+  await app.register(mindmapRoutes);
   return app;
 }
