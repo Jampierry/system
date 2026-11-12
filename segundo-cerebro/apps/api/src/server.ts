@@ -5,6 +5,7 @@ import type { Deps } from './deps';
 import { HttpError } from './errors';
 import { authRoutes } from './modules/auth/routes';
 import { adminRoutes } from './modules/admin/routes';
+import { recoveryRoutes } from './modules/recovery/routes';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -32,5 +33,6 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
 
   await app.register(authRoutes);
   await app.register(adminRoutes);
+  await app.register(recoveryRoutes);
   return app;
 }
