@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNote, renameWikilinks } from './markdown';
+import { parseNote, renameWikilinks, stripFrontmatter } from './markdown';
 
 describe('parseNote', () => {
   it('extrai links com alias, tags e ignora código inline', () => {
@@ -43,5 +43,13 @@ describe('renameWikilinks', () => {
   it('troca o alvo preservando alias e seção; ignora código', () => {
     const md = '[[Velho]] [[velho|x]] [[Velho#S]] `[[Velho]]`\n```\n[[Velho]]\n```\n[[Velhote]]';
     expect(renameWikilinks(md, 'Velho', 'Novo')).toBe('[[Novo]] [[Novo|x]] [[Novo#S]] `[[Velho]]`\n```\n[[Velho]]\n```\n[[Velhote]]');
+  });
+});
+
+describe('stripFrontmatter', () => {
+  it('remove só o bloco inicial', () => {
+    expect(stripFrontmatter('---\na: 1\n---\ncorpo\n---\nfim')).toBe('corpo\n---\nfim');
+    expect(stripFrontmatter('sem bloco')).toBe('sem bloco');
+    expect(stripFrontmatter('--- não fecha')).toBe('--- não fecha');
   });
 });

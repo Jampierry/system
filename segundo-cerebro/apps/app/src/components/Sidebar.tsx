@@ -7,7 +7,7 @@ import { useBus } from '../state/bus';
 import { colors, radius, space } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { useCapture } from './CaptureModal';
-import { useToast } from './Toast';
+import { useCreators } from '../state/creators';
 
 type Counts = Record<string, number>;
 type NavItem = { href: string; label: string; icon: IconName; count?: string };
@@ -36,7 +36,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user, can, logout } = useSession();
   const { openCapture } = useCapture();
-  const toast = useToast();
+  const creators = useCreators();
   const [counts, setCounts] = useState<Counts>({});
   const mode = pathname.startsWith('/library') ? 'library' : 'productivity';
 
@@ -47,15 +47,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   useBus('items', () => { void loadCounts(); });
 
   const go = (href: string) => { router.push(href as any); onNavigate?.(); };
-
-  async function openDaily() {
-    try {
-      const now = new Date();
-      const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      const { note } = await api<{ note: { id: string } }>('/api/notes/daily', { method: 'POST', body: { date } });
-      go(`/library/${note.id}`);
-    } catch (e: any) { toast.show(e.message, 'error'); }
-  }
 
   const row = (it: NavItem) => {
     const selected = pathname === it.href || (it.href !== '/library' && pathname.startsWith(it.href + '/'));
@@ -101,7 +92,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <>
             <View style={styles.group}>
               {LIBRARY.map(row)}
-              <Pressable accessibilityRole="button" accessibilityLabel="Nota diária" onPress={openDaily} style={({ hovered }: any) => [styles.row, hovered && styles.rowHover]}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Nota diária" onPress={() => { void creators.openDaily(); onNavigate?.(); }} style={({ hovered }: any) => [styles.row, hovered && styles.rowHover]}>
                 <Icon name="calendar" size={16} color={colors.muted} /><Text style={styles.rowText}>Nota diária</Text>
               </Pressable>
             </View>

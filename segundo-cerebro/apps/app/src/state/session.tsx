@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import type { Permission } from '@cerebro/shared';
-import { createApi } from '../api/client';
+import { ApiError, createApi } from '../api/client';
 import { tokenStorage } from './storage';
 
 export type User = {
@@ -16,6 +16,17 @@ let currentToken: string | null = null;
 let onExpired: () => void = () => {};
 
 export const api = createApi({ baseUrl, getToken: () => currentToken, onUnauthorized: () => onExpired() });
+
+/** Baixa um recurso binário autenticado (ex.: exportação em zip). */
+export async function apiBlob(path: string): Promise<Blob> {
+  const res = await fetch(baseUrl + path, { headers: currentToken ? { authorization: `Bearer ${currentToken}` } : {} });
+  if (!res.ok) {
+    let body: any = null;
+    try { body = await res.json(); } catch { /* sem corpo */ }
+    throw new ApiError(res.status, body?.error?.code ?? `HTTP_${res.status}`, body?.error?.message ?? 'Falha no download');
+  }
+  return res.blob();
+}
 
 type Ctx = {
   user: User | null;

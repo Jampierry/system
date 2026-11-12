@@ -67,6 +67,11 @@ function splitTarget(inner: string): { target: string; alias?: string; rest: str
   return { target: (cut === -1 ? head : head.slice(0, cut)).trim(), alias, rest: cut === -1 ? '' : head.slice(cut) };
 }
 
+/** Corpo da nota sem o bloco de propriedades (frontmatter). */
+export function stripFrontmatter(md: string): string {
+  return splitFrontmatter(md).body;
+}
+
 export function parseNote(md: string): ParsedNote {
   const { fm, body } = splitFrontmatter(md);
   const frontmatter = fm === null ? {} : parseFrontmatter(fm);
