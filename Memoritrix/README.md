@@ -25,7 +25,7 @@ calendário à direita; abas no topo; alternador **Produtividade | Biblioteca**.
 Requisitos: Node 22+.
 
 ```bash
-cd segundo-cerebro
+cd Memoritrix
 npm install
 npm run build          # exporta o app web (apps/app/dist)
 npm start              # API + app web em http://localhost:8787 (uma única porta)
@@ -80,7 +80,7 @@ um código de uso único que vale 1 h; também há “redefinir senha” direto)
 ## Arquitetura
 
 ```
-segundo-cerebro/
+Memoritrix/
   packages/shared/   regras e tipos compartilhados: permissões, parser de Markdown/wikilinks, mapa mental (funções puras)
   apps/api/          Fastify + SQLite (better-sqlite3, FTS5): auth, admin, itens, notas, mapas, assistente, estáticos
   apps/app/          Expo (React Native + react-native-web) com Expo Router: web e mobile na mesma base
@@ -134,8 +134,8 @@ Requer o pacote `playwright` com Chromium.
 Esta pasta nasceu dentro de outro repositório. Para extrair o histórico só do app:
 
 ```bash
-git subtree split --prefix=segundo-cerebro -b segundo-cerebro-only
-git push git@github.com:SEU_USUARIO/segundo-cerebro.git segundo-cerebro-only:main
+git subtree split --prefix=Memoritrix -b memoritrix-only
+git push git@github.com:SEU_USUARIO/Memoritrix.git memoritrix-only:main
 ```
 
 ## Limites conhecidos e próximos passos
@@ -155,7 +155,7 @@ A especificação e o plano de implementação estão em `../docs/superpowers/sp
 O repositório traz um `Dockerfile` (API + app web, porta 8787, SQLite em `/data`). No [Fly.io](https://fly.io):
 
 ```bash
-cd segundo-cerebro
+cd Memoritrix
 fly launch --no-deploy --copy-config      # ajuste o nome do app em fly.toml
 fly volumes create cerebro_data --size 1 --region gru
 fly secrets set ADMIN_EMAIL=voce@exemplo.com ADMIN_PASSWORD='uma-senha-longa' ANTHROPIC_API_KEY=sk-ant-...
@@ -171,7 +171,7 @@ O app mobile precisa de um servidor público (veja "Publicar"). Em `apps/app/eas
 seu servidor (https) e gere o APK na nuvem do Expo (conta gratuita em expo.dev):
 
 ```bash
-cd segundo-cerebro/apps/app
+cd Memoritrix/apps/app
 npx eas-cli login
 npx eas-cli build --platform android --profile preview
 ```
