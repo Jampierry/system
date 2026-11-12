@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { ZodError } from 'zod';
 import type { Deps } from './deps';
 import { HttpError } from './errors';
+import { webFallback } from './static';
 import { authRoutes } from './modules/auth/routes';
 import { adminRoutes } from './modules/admin/routes';
 import { recoveryRoutes } from './modules/recovery/routes';
@@ -33,7 +34,8 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
     console.error(err);
     return reply.status(500).send({ error: { code: 'INTERNAL', message: 'Erro interno' } });
   });
-  app.setNotFoundHandler((_req, reply) => reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Não encontrado' } }));
+  app.addHook('onRequest', async (_req, reply) => { reply.header('x-content-type-options', 'nosniff'); });
+  app.setNotFoundHandler(webFallback(deps.cfg.webDir));
 
   await app.register(authRoutes);
   await app.register(adminRoutes);

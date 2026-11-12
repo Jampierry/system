@@ -56,8 +56,12 @@ export const PanZoomView = React.forwardRef<PanZoomHandle, {
     const el = containerRef.current as unknown as HTMLElement | null;
     if (!el?.addEventListener) return;
     const onWheel = (e: WheelEvent) => { e.preventDefault(); zoomBy(Math.exp(-e.deltaY * 0.0015)); };
+    // O navegador rola contêineres overflow:hidden ao focar um campo fora da área visível (ex.: novo nó em edição).
+    // Isso deslocaria o conteúdo sem passar pela matemática de pan/zoom; então o scroll é sempre zerado.
+    const onScroll = () => { if (el.scrollLeft || el.scrollTop) { el.scrollLeft = 0; el.scrollTop = 0; } };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('scroll', onScroll);
+    return () => { el.removeEventListener('wheel', onWheel); el.removeEventListener('scroll', onScroll); };
   }, [zoomBy]);
 
   const onLayout = (e: LayoutChangeEvent) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
@@ -81,7 +85,7 @@ export const PanZoomView = React.forwardRef<PanZoomHandle, {
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, overflow: 'hidden', backgroundColor: colors.bg, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
+  container: { flex: 1, overflow: 'hidden', backgroundColor: colors.bg, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, ...(Platform.OS === 'web' ? ({ overflow: 'clip' } as object) : null) },
   controls: { position: 'absolute', right: 10, bottom: 10, gap: 6 },
   ctl: { width: 32, height: 32, borderRadius: 8, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   ctlText: { color: colors.text, fontSize: 16, fontWeight: '700' },
