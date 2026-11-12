@@ -18,7 +18,7 @@ export function TopBar({ narrow, onMenu }: { narrow: boolean; onMenu: () => void
       <Pressable accessibilityRole="button" accessibilityLabel="Capturar item" onPress={() => openCapture()} style={[styles.round, { backgroundColor: colors.accentBg }]}>
         <Icon name="plus" size={15} color={colors.accentText} />
       </Pressable>
-      <Pressable accessibilityRole="button" accessibilityLabel="Falar com o assistente" onPress={() => router.push('/assistant' as any)} style={[styles.round, { backgroundColor: colors.accent }]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Assistente por voz" onPress={() => router.push({ pathname: '/assistant', params: { voice: '1', t: String(Date.now()) } } as any)} style={[styles.round, { backgroundColor: colors.accent }]}>
         <Icon name="wave" size={15} color={colors.white} />
       </Pressable>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 6, alignItems: 'center' }}>

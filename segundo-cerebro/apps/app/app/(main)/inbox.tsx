@@ -29,7 +29,7 @@ export default function Inbox() {
         right={can('assistant.use') ? (
           <>
             <Button label="Processar" icon="sync" variant="secondary" disabled={!items?.length} onPress={() => setProcessing(true)} testID="process-inbox" />
-            <Button label="Processar" icon="wave" variant="secondary" onPress={() => router.push({ pathname: '/assistant', params: { voice: '1', intent: 'process' } } as any)} />
+            <Button label="Processar" icon="wave" variant="secondary" onPress={() => router.push({ pathname: '/assistant', params: { voice: '1', t: String(Date.now()) } } as any)} />
           </>
         ) : undefined}
       />
