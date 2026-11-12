@@ -36,3 +36,12 @@ export function requirePermission(app: FastifyInstance, perm: Permission) {
     if (!u.permissions.includes(perm)) fail(403, 'FORBIDDEN', 'Sem permissão para esta ação');
   };
 }
+
+/** Autentica e bloqueia quem precisa trocar a senha; sem exigir permissão específica (leitura). */
+export function requireUser(app: FastifyInstance) {
+  const auth = requireAuth(app);
+  return async (req: FastifyRequest) => {
+    await auth(req);
+    if (req.user!.mustChangePassword) fail(403, 'PASSWORD_CHANGE_REQUIRED', 'Troque a senha para continuar');
+  };
+}
