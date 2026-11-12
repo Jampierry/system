@@ -45,3 +45,14 @@ export function requireUser(app: FastifyInstance) {
     if (req.user!.mustChangePassword) fail(403, 'PASSWORD_CHANGE_REQUIRED', 'Troque a senha para continuar');
   };
 }
+
+/** Autentica e exige ao menos uma das permissões (bloqueia quem precisa trocar a senha). */
+export function requireAnyPermission(app: FastifyInstance, perms: Permission[]) {
+  const auth = requireAuth(app);
+  return async (req: FastifyRequest) => {
+    await auth(req);
+    const u = req.user!;
+    if (u.mustChangePassword) fail(403, 'PASSWORD_CHANGE_REQUIRED', 'Troque a senha para continuar');
+    if (!perms.some(p => u.permissions.includes(p))) fail(403, 'FORBIDDEN', 'Sem permissão para esta ação');
+  };
+}

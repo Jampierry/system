@@ -3,8 +3,9 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { PERMISSIONS } from '@cerebro/shared';
 import { fail } from '../../errors';
-import { requirePermission } from '../auth/guard';
+import { requireAnyPermission, requirePermission } from '../auth/guard';
 import { logAudit } from './audit';
+import { assertCanGrant } from './guards';
 
 const permsSchema = z.array(z.enum(PERMISSIONS));
 const dto = (r: any) => ({
@@ -17,15 +18,17 @@ export async function profileRoutes(app: FastifyInstance) {
   const deps = app.deps;
   const { db } = deps;
   const guard = requirePermission(app, 'profiles.manage');
+  const canList = requireAnyPermission(app, ['profiles.manage', 'users.manage']); // para atribuir perfis a usuários
   const get = (id: string) => (db.prepare(`${SELECT} where p.id = ?`).get(id) as any) ?? fail(404, 'NOT_FOUND', 'Perfil não encontrado');
 
-  app.get('/api/admin/profiles', { preHandler: guard }, async () => ({
+  app.get('/api/admin/profiles', { preHandler: canList }, async () => ({
     profiles: (db.prepare(`${SELECT} order by is_system desc, name`).all() as any[]).map(dto),
   }));
 
   app.post('/api/admin/profiles', { preHandler: guard }, async (req) => {
     const b = z.object({ name: z.string().min(1), description: z.string().default(''), permissions: permsSchema }).parse(req.body);
     if (db.prepare('select 1 from profiles where name = ?').get(b.name)) fail(409, 'NAME_TAKEN', 'Já existe um perfil com este nome');
+    assertCanGrant(req.user!, b.permissions);
     const id = randomUUID();
     db.prepare('insert into profiles(id,name,description,permissions_json,is_system) values(?,?,?,?,0)')
       .run(id, b.name, b.description, JSON.stringify(b.permissions));
@@ -37,6 +40,8 @@ export async function profileRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const b = z.object({ name: z.string().min(1).optional(), description: z.string().optional(), permissions: permsSchema.optional() }).parse(req.body);
     const cur = get(id);
+    assertCanGrant(req.user!, JSON.parse(cur.permissions_json));
+    if (b.permissions) assertCanGrant(req.user!, b.permissions);
     if (cur.is_system && (b.name !== undefined && b.name !== cur.name)) fail(409, 'SYSTEM_PROFILE', 'Perfis de sistema não podem ser renomeados');
     if (id === 'sys-admin' && b.permissions) fail(409, 'SYSTEM_PROFILE', 'O perfil Administrador não pode perder permissões');
     if (b.name && b.name !== cur.name && db.prepare('select 1 from profiles where name = ?').get(b.name)) fail(409, 'NAME_TAKEN', 'Já existe um perfil com este nome');
@@ -49,6 +54,7 @@ export async function profileRoutes(app: FastifyInstance) {
   app.delete('/api/admin/profiles/:id', { preHandler: guard }, async (req) => {
     const { id } = req.params as { id: string };
     const cur = get(id);
+    assertCanGrant(req.user!, JSON.parse(cur.permissions_json));
     if (cur.is_system) fail(409, 'SYSTEM_PROFILE', 'Perfis de sistema não podem ser removidos');
     if (cur.n > 0) fail(409, 'PROFILE_IN_USE', 'Há usuários usando este perfil');
     db.prepare('delete from profiles where id = ?').run(id);

@@ -136,3 +136,54 @@ describe('admin: auditoria', () => {
     expect(r2.entries.every((e: any) => e.id < r.next)).toBe(true);
   });
 });
+
+describe('admin: sem escalada de privilégio', () => {
+  /** Cria um gestor com um perfil customizado que só tem `perms`. */
+  async function manager(c: Awaited<ReturnType<typeof setup>>, perms: string[], email = 'gestor@x.com') {
+    const created = await call(c, 'POST', '/api/admin/profiles', c.admin, { name: 'Gestor ' + email, permissions: perms });
+    await createUser(c.db, { email });
+    c.db.prepare('update users set profile_id = ? where email = ?').run(created.json().profile.id, email);
+    return { token: bearer(await loginAs(c.app, email)), profileId: created.json().profile.id as string };
+  }
+  const idOf = (c: any, email: string) => (c.db.prepare('select id from users where email=?').get(email) as any).id;
+
+  it('quem gerencia usuários lista perfis (para atribuir), mas não os altera', async () => {
+    const c = await setup();
+    const { token, profileId } = await manager(c, ['users.manage']);
+    expect((await call(c, 'GET', '/api/admin/profiles', token)).statusCode).toBe(200);
+    expect((await call(c, 'POST', '/api/admin/profiles', token, { name: 'X', permissions: [] })).statusCode).toBe(403);
+    expect((await call(c, 'DELETE', `/api/admin/profiles/${profileId}`, token)).statusCode).toBe(403);
+  });
+
+  it('gestor de usuários cria membros, mas não atribui perfis administrativos que não possui', async () => {
+    const c = await setup();
+    const { token } = await manager(c, ['users.manage']);
+    const ok = await call(c, 'POST', '/api/admin/users', token, { name: 'N', email: 'n@x.com', profileId: profileId(c, 'Membro') });
+    expect(ok.statusCode).toBe(200);
+    const bad = await call(c, 'POST', '/api/admin/users', token, { name: 'A', email: 'a2@x.com', profileId: profileId(c, 'Administrador') });
+    expect(bad.statusCode).toBe(403);
+    expect(bad.json().error.code).toBe('ESCALATION');
+    // promover alguém por PATCH também é barrado
+    const mid = idOf(c, 'membro@x.com');
+    expect((await call(c, 'PATCH', `/api/admin/users/${mid}`, token, { profileId: profileId(c, 'Administrador') })).statusCode).toBe(403);
+  });
+
+  it('gestor de usuários não mexe em contas administrativas (bloquear, excluir, rebaixar, encerrar sessões)', async () => {
+    const c = await setup();
+    const { token } = await manager(c, ['users.manage']);
+    const adminId = c.adminId;
+    for (const r of [
+      await call(c, 'PATCH', `/api/admin/users/${adminId}`, token, { status: 'locked' }),
+      await call(c, 'PATCH', `/api/admin/users/${adminId}`, token, { profileId: profileId(c, 'Membro') }),
+      await call(c, 'DELETE', `/api/admin/users/${adminId}`, token),
+      await call(c, 'POST', `/api/admin/users/${adminId}/revoke-sessions`, token),
+    ]) { expect(r.statusCode).toBe(403); expect(r.json().error.code).toBe('ESCALATION'); }
+    expect((await call(c, 'GET', '/api/auth/me', c.admin)).statusCode).toBe(200); // admin segue logado
+  });
+
+  it('admin (com todas as permissões) continua podendo tudo', async () => {
+    const c = await setup();
+    const ok = await call(c, 'POST', '/api/admin/users', c.admin, { name: 'Outro', email: 'outro@x.com', profileId: profileId(c, 'Administrador') });
+    expect(ok.statusCode).toBe(200);
+  });
+});

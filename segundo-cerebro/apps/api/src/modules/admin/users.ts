@@ -7,6 +7,7 @@ import { requirePermission } from '../auth/guard';
 import { hashPassword } from '../auth/password';
 import { revokeUserSessions } from '../auth/sessions';
 import { logAudit } from './audit';
+import { assertCanGrant, profilePerms, userProfilePerms } from './guards';
 
 const dto = (r: any) => ({
   id: r.id, email: r.email, name: r.name, status: r.status,
@@ -53,6 +54,7 @@ export async function userRoutes(app: FastifyInstance) {
     const b = z.object({ name: z.string().min(1), email: emailSchema, profileId: z.string() }).parse(req.body);
     if (db.prepare('select 1 from users where email = ?').get(b.email)) fail(409, 'EMAIL_TAKEN', 'Já existe um usuário com este e-mail');
     if (!db.prepare('select 1 from profiles where id = ?').get(b.profileId)) fail(400, 'INVALID_PROFILE', 'Perfil inexistente');
+    assertCanGrant(req.user!, profilePerms(db, b.profileId));
     const id = randomUUID();
     const pw = tempPassword();
     db.prepare('insert into users(id,email,name,password_hash,profile_id,status,must_change_password,created_at) values(?,?,?,?,?,?,1,?)')
@@ -69,6 +71,8 @@ export async function userRoutes(app: FastifyInstance) {
       status: z.enum(['active', 'locked']).optional(),
     }).parse(req.body);
     const cur = getUser(id) as any;
+    assertCanGrant(req.user!, userProfilePerms(db, id));
+    if (b.profileId) assertCanGrant(req.user!, profilePerms(db, b.profileId));
     const demoting = b.profileId !== undefined && b.profileId !== cur.profile_id &&
       !(JSON.parse((db.prepare('select permissions_json p from profiles where id=?').get(b.profileId) as any)?.p ?? '[]') as string[]).includes('users.manage');
     if (b.status === 'locked' || demoting) guardSelfAndLastAdmin(req.user!.id, id);
@@ -83,6 +87,7 @@ export async function userRoutes(app: FastifyInstance) {
   app.post('/api/admin/users/:id/revoke-sessions', { preHandler: guard }, async (req) => {
     const { id } = req.params as { id: string };
     const cur = getUser(id) as any;
+    assertCanGrant(req.user!, userProfilePerms(db, id));
     revokeUserSessions(deps, id);
     logAudit(deps, req.user!.id, 'user.revoke-sessions', cur.email);
     return { ok: true };
@@ -91,6 +96,7 @@ export async function userRoutes(app: FastifyInstance) {
   app.delete('/api/admin/users/:id', { preHandler: guard }, async (req) => {
     const { id } = req.params as { id: string };
     const cur = getUser(id) as any;
+    assertCanGrant(req.user!, userProfilePerms(db, id));
     guardSelfAndLastAdmin(req.user!.id, id);
     db.prepare("update users set deleted_at = ?, status = 'locked' where id = ?").run(deps.now().toISOString(), id);
     revokeUserSessions(deps, id);

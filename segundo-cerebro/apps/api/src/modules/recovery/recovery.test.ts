@@ -132,3 +132,38 @@ describe('force-reset', () => {
     expect((await reset(c, 'ana@x.com', r.json().code)).statusCode).toBe(200);
   });
 });
+
+describe('recuperação: sem tomada de conta administrativa', () => {
+  async function recoveryManager(c: Awaited<ReturnType<typeof setup>>) {
+    const created = await c.app.inject({ method: 'POST', url: '/api/admin/profiles', headers: c.admin, payload: { name: 'Suporte', permissions: ['recovery.manage'] } });
+    await createUser(c.db, { email: 'suporte@x.com' });
+    c.db.prepare('update users set profile_id = ? where email = ?').run(created.json().profile.id, 'suporte@x.com');
+    return bearer(await loginAs(c.app, 'suporte@x.com'));
+  }
+
+  it('suporte aprova recuperação de membro, mas não de administrador', async () => {
+    const c = await setup();
+    const sup = await recoveryManager(c);
+    await forgot(c, 'ana@x.com');
+    await forgot(c, 'admin@x.com');
+    const list = ((await c.app.inject({ method: 'GET', url: '/api/admin/recovery?status=pending', headers: sup })).json().requests as any[]);
+    const ana = list.find(r => r.email === 'ana@x.com');
+    const adm = list.find(r => r.email === 'admin@x.com');
+    expect((await post(c, `/api/admin/recovery/${ana.id}/approve`, undefined, sup)).statusCode).toBe(200);
+    const bad = await post(c, `/api/admin/recovery/${adm.id}/approve`, undefined, sup);
+    expect(bad.statusCode).toBe(403);
+    expect(bad.json().error.code).toBe('ESCALATION');
+    expect((await post(c, `/api/admin/recovery/${adm.id}/deny`, undefined, sup)).statusCode).toBe(403);
+    // e o admin consegue
+    expect((await post(c, `/api/admin/recovery/${adm.id}/approve`, undefined, c.admin)).statusCode).toBe(200);
+  });
+
+  it('force-reset também respeita a regra', async () => {
+    const c = await setup();
+    const sup = await recoveryManager(c);
+    const adminId = (c.db.prepare("select id from users where email='admin@x.com'").get() as any).id;
+    const memberId = (c.db.prepare("select id from users where email='ana@x.com'").get() as any).id;
+    expect((await post(c, `/api/admin/users/${adminId}/force-reset`, undefined, sup)).statusCode).toBe(403);
+    expect((await post(c, `/api/admin/users/${memberId}/force-reset`, undefined, sup)).statusCode).toBe(200);
+  });
+});

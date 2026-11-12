@@ -6,6 +6,7 @@ import { requirePermission } from '../auth/guard';
 import { hashPassword } from '../auth/password';
 import { revokeUserSessions } from '../auth/sessions';
 import { logAudit } from '../admin/audit';
+import { assertCanGrant, userProfilePerms } from '../admin/guards';
 import { expireOpen, issueCode, mailCode, hashToken } from './service';
 
 const MAX_FAILS = 5;
@@ -49,6 +50,7 @@ export async function recoveryRoutes(app: FastifyInstance) {
 
   app.post('/api/admin/recovery/:id/approve', { preHandler: guard }, async (req) => {
     const r = getOpen((req.params as any).id);
+    assertCanGrant(req.user!, userProfilePerms(db, r.user_id));
     const { code } = await issueCode(deps, r.user_id, req.user!.id, r.id);
     logAudit(deps, req.user!.id, 'recovery.approve', r.email);
     await mailCode(deps, r.email, code);
@@ -57,6 +59,7 @@ export async function recoveryRoutes(app: FastifyInstance) {
 
   app.post('/api/admin/recovery/:id/deny', { preHandler: guard }, async (req) => {
     const r = getOpen((req.params as any).id);
+    assertCanGrant(req.user!, userProfilePerms(db, r.user_id));
     db.prepare("update password_recovery set status='denied', resolved_by=?, resolved_at=? where id=?")
       .run(req.user!.id, deps.now().toISOString(), r.id);
     logAudit(deps, req.user!.id, 'recovery.deny', r.email);
@@ -67,6 +70,7 @@ export async function recoveryRoutes(app: FastifyInstance) {
     const id = (req.params as any).id as string;
     const u = db.prepare('select id, email from users where id=? and deleted_at is null').get(id) as any;
     if (!u) fail(404, 'NOT_FOUND', 'Usuário não encontrado');
+    assertCanGrant(req.user!, userProfilePerms(db, id));
     expireOpen(deps, id);
     const { code } = await issueCode(deps, id, req.user!.id);
     logAudit(deps, req.user!.id, 'recovery.force', u.email);
